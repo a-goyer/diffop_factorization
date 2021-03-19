@@ -1,5 +1,4 @@
 from sage.all import *
-
 from ore_algebra import OreAlgebra
 
 P, z = PolynomialRing(QQ, 'z').objgen()
