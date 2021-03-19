@@ -1,5 +1,5 @@
 from sage.all import *
-from sage.rings.complex_field import ComplexField_class
+from sage.rings.complex_mpfr import ComplexField_class
 
 
 
