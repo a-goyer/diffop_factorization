@@ -180,11 +180,11 @@ class Splitting ():
 
         ### Check the 1-dimensional subspaces ###
         s = 0
-        for m in self._partition :
+        for k, m in enumerate(self._partition) :
             if m == 1 :
 
                 # compute the error bound
-                mat = self._projections[s]
+                mat = self._projections[k]
                 mat[s,s] = mat[s,s] - 1
                 epsilon = max(sum(mat[i,j].above_abs() for j in range(self._n)) for i in range(self._n)) # upper bound for the operator norm associated to Infinity-norm
                 eps_ball = self._C(0).add_error(epsilon)

@@ -36,16 +36,97 @@ def hermite_pade_approximants (F, d):
 
     """
 
-    m = len(F)
-    K = F[0].base_ring()
+    try:
+        F = [f.truncate() for f in F]
+    except: pass
 
-    Pol, x = PolynomialRing(K, 'x').objgen()
-    F = [Pol(f) for f in F]
-
-    mat = matrix(m, 1, F)
+    mat = matrix(len(F), 1, F)
     basis = mat.minimal_approximant_basis(d)
     rdeg = basis.row_degrees()
     i = min(range(len(rdeg)), key = lambda i: rdeg[i])
     P = basis[i]
 
     return P
+
+
+def guess_rational(x, p = 30):
+
+    r"""
+    Return the simplest rational number equals to x to the accuracy p.
+
+    INPUT:
+     - 'x' - a complex number or a list of complex numbers
+
+    OUTPUT:
+     - 'r' - a rational number or a list of rational numbers
+
+    EXAMPLES::
+
+        sage: from diffop_factorization.guessing_tools import guess_rational
+        sage: a = CC(sqrt(2))^2; a == 2
+        False
+        sage: guess_rational(a)
+        2
+        sage: b = a + 2^(-40); b
+        2.00000000000091
+        sage: guess_rational(b)
+        2
+        sage: c = a + 2^(-20); c
+        2.00000095367432
+        sage: guess_rational(c)
+        2095107/1047553
+        sage: guess_rational(c, 20)
+        2
+
+    """
+
+    if isinstance(x, list) :
+        r = [guess_rational(c) for c in x]
+        return r
+
+    im = x.imag_part()
+    eps = 2.**(-p)
+    if not im <= eps:
+        raise ValueError('This number does not seem a rational number.')
+
+    x = x.real_part()
+    r = x.nearby_rational(max_error = eps)
+
+    return r
+
+
+
+def guess_algebraic(x, p = 30, d = 3):
+
+    r"""
+    Return the simplest algebraic number of degree at most d equals to x to the
+    accuracy p.
+
+    INPUT:
+     - 'x' - a complex number or a list of complex numbers
+
+    OUTPUT:
+     - 'a' - an algebraic number or a list of algebraic numbers
+
+    EXAMPLES::
+
+        sage: from diffop_factorization.guessing_tools import guess_algebraic
+        sage: a = CC(sqrt(2))
+        sage: guess_algebraic(a)
+        1.414213562373095?
+        sage: _.minpoly()
+        x^2 - 2
+
+    """
+
+    if isinstance(x, list) :
+        a = [guess_algebraic(c) for c in x]
+        return a
+
+    minpol = algdep(x, degree = d, known_bits = p)
+    roots = minpol.roots(QQbar, multiplicities=False)
+    l = [r-x for r in roots]
+    i = min(range(len(l)), key = lambda i: abs(l[i])); i
+    a = roots[i]
+
+    return a
