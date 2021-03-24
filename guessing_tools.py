@@ -86,7 +86,7 @@ def guess_rational(x, p = 30):
 
     im = x.imag_part()
     eps = 2.**(-p)
-    if not im <= eps:
+    if not abs(im) <= eps:
         raise ValueError('This number does not seem a rational number.')
 
     x = x.real_part()

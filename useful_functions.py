@@ -17,11 +17,13 @@ def customized_accuracy(x):
     """
 
     if isinstance(x, list):
-        acc = min(min(customized_accuracy(c) for c in r) for r in x)
+        acc = min(customized_accuracy(c) for c in x)
         return acc
 
     if x.contains_zero() :
-        acc = int(-log(x.rad(), 2))
+        acc = -log(x.rad(), 2)
+        if not acc == +infinity:
+            acc = int(acc)
     else:
         acc = x.accuracy()
 
