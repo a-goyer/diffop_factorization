@@ -1,19 +1,15 @@
-from sage.all import *
-from ore_algebra import OreAlgebra
+# coding: utf-8
+r"""
+This file contains some examples: the one raised by Salvy, ...
+"""
 
-P, z = PolynomialRing(QQ, 'z').objgen()
-OA, Dz = OreAlgebra(P, 'Dz').objgen()
+from sage.rings.rational_field import QQ
+from ore_algebra import DifferentialOperators
 
-
-def gens():
-    """
-    Return (z, Dz).
-    """
-    return P.gen(), OA.gen()
+diffops, z, Dz = DifferentialOperators(QQ, 'z')
 
 
-### Salvy's example (>9h in Maple) ###
-salvy_example = {}
-salvy_example["left_factor"] = z**2*Dz + 3
-salvy_example["right_factor"] = (z - 3)*Dz + 4*z**5
-salvy_example["operator"] = salvy_example.get("left_factor") * salvy_example.get("right_factor")
+
+# DEtools[DFactor] (Maple, diffop package) fails with the following operator
+# (in 2020, Dec).
+salvy = (z**2*Dz + 3) * ((z - 3)*Dz + 4*z**5)
