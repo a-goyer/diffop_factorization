@@ -11,11 +11,9 @@ from sage.structure.element import Element, RingElement
 from sage.structure.richcmp import (op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE,
         rich_to_bool)
 from sage.structure.unique_representation import UniqueRepresentation
+from .precision_error import PrecisionError
 
 Radii = RealField(30)
-
-class PrecisionError(Exception):
-    pass
 
 class OptimisticFunctor(ConstructionFunctor):
     rank = 6
