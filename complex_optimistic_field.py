@@ -53,7 +53,7 @@ class ComplexOptimisticBall(RingElement):
             if left.value.rad() <= eps and right.value.rad() <= eps:
                 return rich_to_bool(op, 0)
             else:
-                raise PrecisionError
+                raise PrecisionError("Cannot compare this two numbers.")
         else:
             return left.value._richcmp_(right.value, op)
 
