@@ -1,6 +1,13 @@
 from sage.all import *
 
 
+def overlaps(a, b):
+    """
+    Function overlaps designed for vectors and matrices.
+    """
+    l = len(a.list())
+    return all(a.list()[i].overlaps(b.list()[i]) for i in range(l))
+
 def customized_accuracy(x):
 
     """
