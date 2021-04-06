@@ -1,8 +1,9 @@
-
+from .complex_optimistic_field import ComplexOptimisticField, fromCOFtoCBF
+from .precision_error import PrecisionError
 
 def _clean(pol):
 
-    l = pol.coefficients()
+    l = list(pol)
     while len(l)>0 and l[-1].contains_zero(): l.pop()
     cpol = pol.parent()(l)
 
@@ -157,3 +158,63 @@ def radical(pol):
     rad = _clean(pol.quo_rem(d)[0])
 
     return rad
+
+
+
+def roots(pol, *, multiplicities=False):
+
+    r"""
+    Return the roots of the polynomial "pol".
+
+    Note: this function is designed for CBF or COF as base ring.
+
+    Some words about the correction of this algorithm:
+
+
+    INPUT:
+
+     -- "mat"            -- n×n matrix
+     -- "multiplicities" -- boolean
+
+
+    OUTPUT:
+
+     -- "s" -- list of complex numbers
+
+    If 'multiplicities=True' is specified, "s" is a list of couples (r, m) with
+    r a complex number and m a positive integer.
+
+
+    EXAMPLE::
+
+    """
+
+    K = pol.base_ring()
+    if isinstance(K, ComplexOptimisticField):
+        pol = fromCOFtoCBF(pol)
+
+    try:
+        res = radical(pol).roots(multiplicities=False)
+        res = [K(r) for r in res]
+    except ValueError:
+        raise PrecisionError("Cannot compute the roots of this polynomial.") from None
+
+    if not multiplicities: return res
+
+    n = pol.degree()
+    derivatives = [pol]
+    for i in range(n):
+        pol = pol.derivative()
+        derivatives.append(pol)
+
+    for j, ev in enumerate(res):
+        m = 1
+        evaluations = [p(ev) for p in derivatives]
+        while evaluations[m].contains_zero():
+            m = m + 1
+        res[j] = (ev, m)
+
+    if sum(m for _, m in res)<n:
+        raise PrecisionError("Cannot compute multiplicities.")
+
+    return res

@@ -11,7 +11,13 @@ from sage.structure.element import Element, RingElement
 from sage.structure.richcmp import (op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE,
         rich_to_bool)
 from sage.structure.unique_representation import UniqueRepresentation
+
 from .precision_error import PrecisionError
+from sage.modules.free_module_element import vector
+from sage.matrix.constructor import matrix
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.matrix.matrix_generic_dense import Matrix_generic_dense
+from sage.modules.free_module_element import FreeModuleElement_generic_dense
 
 Radii = RealField(30)
 
@@ -75,6 +81,21 @@ class ComplexOptimisticBall(RingElement):
     def _div_(self, other):
         return self.__class__(self.parent(), self.value / other.value)
 
+    def contains_zero(self):
+        return self.value.contains_zero()
+
+    def is_nonzero(self):
+        return not self == self.parent().zero()
+
+    def rad(self):
+        return self.value.rad()
+
+    def below_abs(self):
+        return self.value.below_abs()
+
+    def above_abs(self):
+        return self.value.above_abs()
+
 class ComplexOptimisticField(UniqueRepresentation, Field):
 
     Element = ComplexOptimisticBall
@@ -121,3 +142,30 @@ class ComplexOptimisticField(UniqueRepresentation, Field):
 
     def is_exact(self):
         return False # discutable, à voir à l'usage
+
+def fromCOFtoCBF(o):
+
+    if isinstance(o, Matrix_generic_dense):
+        m, n = o.dimensions()
+        o = o.list()
+        o = [c.value for c in o]
+        o = matrix(m, n, o)
+        return o
+
+    if isinstance(o, FreeModuleElement_generic_dense):
+        o = vector([c.value for c in o])
+        return o
+
+    if isinstance(o, list):
+        o = [c.value for c in o]
+        return
+
+    try:
+        P = PolynomialRing(o.base_ring()._ball_field, 'x')
+        o = P([c.value for c in o])
+        return o
+    except:
+        pass
+
+    raise TypeError('x have to be a vector or a matrix or a list or ' + \
+    'a polynomial whose coefficients are ComplexOptimisticBall')
