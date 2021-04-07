@@ -1,1 +1,1 @@
-from .splitting import invariant_subspace
+from .invariant_subspace import InvSub

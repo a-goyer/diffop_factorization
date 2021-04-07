@@ -1,4 +1,4 @@
-from .complex_optimistic_field import ComplexOptimisticField, fromCOFtoCBF
+from .complex_optimistic_field import ComplexOptimisticField
 from .precision_error import PrecisionError
 
 def _clean(pol):
@@ -191,7 +191,7 @@ def roots(pol, *, multiplicities=False):
 
     K = pol.base_ring()
     if isinstance(K, ComplexOptimisticField):
-        pol = fromCOFtoCBF(pol)
+        pol = pol.change_ring(K._ball_field)
 
     try:
         res = radical(pol).roots(multiplicities=False)

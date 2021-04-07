@@ -1,11 +1,11 @@
 from .precision_error import PrecisionError
-from .linear_algebra import REF, orbit, generated_algebra, ker
+from .linear_algebra import REF, orbit, generated_algebra
 from .linear_algebra import eigenvalues, gen_eigenspaces
 from .useful_functions import customized_accuracy
-from .complex_optimistic_field import ComplexOptimisticField, fromCOFtoCBF
+from .complex_optimistic_field import ComplexOptimisticField
 try:
     from sage.rings.complex_mpfr import ComplexField
-except ModuleNotFoundError:
+except ModuleNotFoundError: # to work with versions of sage older than 9.3
     from sage.rings.complex_field import ComplexField
 from sage.rings.real_mpfr import RealField
 from sage.modules.free_module import VectorSpace
@@ -40,8 +40,8 @@ class Splitting():
             new_dec.append(gen_eigenspaces(mat.submatrix(s, s, nj, nj), projections=True))
             s = s + nj
 
-        self.partition = [s['multiplicity'] for bloc in new_dec for s in bloc]
-        self.projections = [p * s['projection'](mat) * p for j, p in enumerate(self.projections) for s in new_dec[j]]
+        self.partition = [space['multiplicity'] for bloc in new_dec for space in bloc]
+        self.projections = [p * space['projection'](mat) * p for j, p in enumerate(self.projections) for space in new_dec[j]]
 
         T = matrix()
         for bloc in new_dec:
@@ -98,13 +98,14 @@ class Splitting():
 
 
 
-    def check_nolines(self):
+    def check_nolines(self, verbose=False):
 
         (COF, Mats, b), p = self.COF_version(), self.partition
 
         s=0
         for j, nj in enumerate(p):
             if nj>1:
+                if verbose: print('Check in a subspace of dimension', nj)
                 ind = range(s, s + nj)
                 basis =  identity_matrix(COF, self.n)[s:s+nj]
                 K = VectorSpace(COF, nj)
@@ -113,10 +114,11 @@ class Splitting():
                     K = intersect_eigenvectors(K, mat)
 
                 while K.dimension()>0:
+                    if verbose: print('dim K =',K.dimension())
                     vec0 = vector(COF, [0]*s + list(K.basis()[0]) + [0]*(self.n - s - nj))
                     V, T, p = orbit(Mats, vec0, transition=True, pivots=True)
                     if len(V)<self.n:
-                        V = [fromCOFtoCBF(b*v) for v in V]
+                        V = [(b*v).change_ring(self.C) for v in V]
                         return (True, V)
                     vec1 = basis[0]
                     if len(REF(matrix([vec0, vec1]), pivots=True)[1])==1:
@@ -159,9 +161,37 @@ def intersect_eigenvectors(K, mat):
 
 
 
-def invariant_subspace(Mats, *, verbose=False):
+def InvSub(Mats, *, verbose=False):
 
     r"""
+    Return either a nontrivial subspace invariant under the action of the
+    matrices of "Mats" or None if there is none.
+
+    Note: this function is designed for BallField as base ring.
+
+    Note: only the output None is rigorous, in the following sense. If
+    InvSub(Mats) is None than for any [M1·, ..., Mr·] in Mats=[M1, ..., Mr],
+    there is no nontrivial subpace invariant under the action of M1·, ..., Mr·.
+
+    INPUT:
+
+     -- "Mats" -- list of n×n matrices
+
+
+    OUTPUT:
+
+     -- "V" -- list of vectors of size n or None
+
+
+    EXAMPLE::
+
+        sage: from diffop_factorization import InvSub
+        sage: C = ComplexBallField(30)
+        sage: mat1 = matrix(C, [[1, 1], [1, 1]])
+        sage: mat2 = matrix(C, [[3, -1], [0 , 2]])
+        sage: InvSub([mat1, mat2])
+        [([1.00 +/- 1.17e-3] + [+/- 1.17e-3]*I, [1.00 +/- 9.96e-4] + [+/- 9.96e-4]*I)]
+
     """
 
     if Mats==[]: raise TypeError("This function requires at least one matrix.")
@@ -179,9 +209,9 @@ def invariant_subspace(Mats, *, verbose=False):
         if verbose: print('Lines checked')
 
         if len(split.partition)==n: return None
-        if verbose: print('Need to check nolines.')
+        if verbose: print('Need to check nolines')
 
-        b, x = split.check_nolines()
+        b, x = split.check_nolines(verbose=verbose)
         if b=='new_matrix': split.refine(x)
         elif b: return x
         else: hope=False
