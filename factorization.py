@@ -107,7 +107,7 @@ def factors(L, verbose=False):
         return [L]
     else:
         Q = L//R
-        return factor(Q, verbose=verbose) + factor(R, verbose=verbose)
+        return factors(Q, verbose=verbose) + factors(R, verbose=verbose)
 
 
 

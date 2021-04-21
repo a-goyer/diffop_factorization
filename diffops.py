@@ -2,6 +2,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.qqbar import QQbar
 from sage.arith.functions import lcm
 from ore_algebra import DifferentialOperators
+from sage.rings.polynomial.polynomial_ring import PolynomialRing_field
 
 
 
@@ -16,10 +17,13 @@ def is_fuchsian(L):
 
     """
 
-    z, n = L.base_ring().gen(), L.order()
+    F = L.base_ring()
+    z, n = F.gen(), L.order()
 
-    q = lcm([c.denominator() for c in L])
-    L = DifferentialOperators(QQ, 'z')[0](q*L)
+    if not isinstance(F, PolynomialRing_field):
+        q = lcm([c.denominator() for c in L])
+        L = L.parent().change_ring(L.base_ring().base())(q*L)
+
     sing = L.leading_coefficient().roots(QQbar, multiplicities=False)
 
     for k, frac in enumerate(L.monic().coefficients()[:-1]):
