@@ -136,7 +136,7 @@ def REF(mat, *, transformation=False, pivots=False, prec_pivots={}):
     for j in range(n):
 
         if not j in p:
-            r, col = len(p), T * vector(mat[:,j])
+            r, col = len(p), T*vector(mat[:,j])
             i = max((l for l in range(r, m) if col[l].is_nonzero()), \
             key=lambda l: col[l].below_abs(), default=None)
 

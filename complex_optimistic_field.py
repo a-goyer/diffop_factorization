@@ -99,6 +99,9 @@ class ComplexOptimisticBall(RingElement):
     def imag(self):
         return self.value.imag()
 
+    def accuracy(self):
+        return self.value.accuracy()
+
 class ComplexOptimisticField(UniqueRepresentation, Field):
 
     Element = ComplexOptimisticBall

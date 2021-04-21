@@ -13,7 +13,7 @@ from sage.modules.free_module_element import vector
 from sage.matrix.constructor import matrix
 from sage.matrix.special import identity_matrix
 
-
+from sage.misc.misc_c import prod
 
 class Splitting():
 
@@ -112,9 +112,15 @@ class Splitting():
                 for M in Mats:
                     mat = M.matrix_from_rows_and_columns(ind, ind)
                     K = intersect_eigenvectors(K, mat)
-
+                for v in K.basis():
+                    print('test avec v=', v)
+                    for m in self.matrices:
+                        print(m.matrix_from_rows_and_columns(ind, ind)*v)
+                    p = prod(m.matrix_from_rows_and_columns(ind, ind) for m in self.matrices)
+                    print('prod', p*v)
+                print('fintest')
                 while K.dimension()>0:
-                    if verbose: print('dim K =',K.dimension())
+                    if verbose: print(K) #print('dim K =', K.dimension())
                     vec0 = vector(COF, [0]*s + list(K.basis()[0]) + [0]*(self.n - s - nj))
                     V, T, p = orbit(Mats, vec0, transition=True, pivots=True)
                     if len(V)<self.n:
@@ -126,7 +132,7 @@ class Splitting():
                     lc = linear_combination(vec1, V, p)
                     M = sum(cj*T[j] for j, cj in enumerate(lc))
                     mat = M.matrix_from_rows_and_columns(ind, ind)
-                    if len(roots(mat.charpoly()))>1:
+                    if len(eigenvalues(mat))>1:
                         return ('new_matrix', M)
                     K = intersect_eigenvectors(K, mat)
 

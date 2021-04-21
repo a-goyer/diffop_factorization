@@ -2,9 +2,9 @@ from sage.rings.real_mpfr import RealField
 from sage.rings.rational_field import QQ
 from sage.rings.qqbar import QQbar
 from sage.matrix.constructor import matrix
-from sage.matrix.matrix_generic_dense import Matrix_generic_dense
+from sage.matrix.matrix_dense import Matrix_dense
 from sage.modules.free_module_element import FreeModuleElement_generic_dense
-from sage.rings.polynomial.polynomial_element_generic import Polynomial_generic_dense_field
+from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.functions.other import floor
 from sage.functions.log import log
 
@@ -92,8 +92,7 @@ def guess_rational(x, p=None):
         return r
 
     if isinstance(x, FreeModuleElement_generic_dense) or \
-    isinstance(x, Matrix_generic_dense) or \
-    isinstance(x, Polynomial_generic_dense_field):
+    isinstance(x, Matrix_dense) or isinstance(x, Polynomial):
         r = x.parent().change_ring(QQ)(guess_rational(x.list(), p=p))
         return r
 
@@ -103,7 +102,7 @@ def guess_rational(x, p=None):
     else:
         eps = RealField(30).one() >> p
 
-    if not x.imag().above_abs().mid() < eps:
+    if not x.imag().above_abs().mid()<eps:
         raise ValueError('This number does not seem a rational number.')
 
     x = x.real().mid()
