@@ -1,3 +1,4 @@
+from .precision_error import PrecisionError
 from sage.rings.real_mpfr import RealField
 from sage.rings.rational_field import QQ
 from sage.rings.qqbar import QQbar
@@ -103,7 +104,7 @@ def guess_rational(x, p=None):
         eps = RealField(30).one() >> p
 
     if not x.imag().above_abs().mid()<eps:
-        raise ValueError('This number does not seem a rational number.')
+        raise PrecisionError('This number does not seem a rational number.')
 
     x = x.real().mid()
     r = x.nearby_rational(max_error=x.parent()(eps))

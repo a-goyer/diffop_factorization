@@ -112,15 +112,8 @@ class Splitting():
                 for M in Mats:
                     mat = M.matrix_from_rows_and_columns(ind, ind)
                     K = intersect_eigenvectors(K, mat)
-                for v in K.basis():
-                    print('test avec v=', v)
-                    for m in self.matrices:
-                        print(m.matrix_from_rows_and_columns(ind, ind)*v)
-                    p = prod(m.matrix_from_rows_and_columns(ind, ind) for m in self.matrices)
-                    print('prod', p*v)
-                print('fintest')
                 while K.dimension()>0:
-                    if verbose: print(K) #print('dim K =', K.dimension())
+                    if verbose: print('dim K =', K.dimension())
                     vec0 = vector(COF, [0]*s + list(K.basis()[0]) + [0]*(self.n - s - nj))
                     V, T, p = orbit(Mats, vec0, transition=True, pivots=True)
                     if len(V)<self.n:
