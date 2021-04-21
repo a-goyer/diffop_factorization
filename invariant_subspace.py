@@ -41,17 +41,18 @@ class Splitting():
             s = s + nj
 
         self.partition = [space['multiplicity'] for bloc in new_dec for space in bloc]
-        self.projections = [p * space['projection'](mat) * p for j, p in enumerate(self.projections) for space in new_dec[j]]
+        self.projections = [p*space['projection'](mat)*p for j, p in enumerate(self.projections) for space in new_dec[j]]
 
         T = matrix()
         for bloc in new_dec:
             basis = []
-            for s in bloc: basis.extend(s['basis'])
+            for s in bloc:
+                basis.extend(s['basis'])
             T = T.block_sum(matrix(basis).transpose())
-        self.basis = T * self.basis
+        self.basis = T*self.basis
         invT = ~T
-        self.matrices = [invT * M * T for M in self.matrices]
-        self.projections = [invT * p * T for p in self.projections]
+        self.matrices = [invT*M*T for M in self.matrices]
+        self.projections = [invT*p*T for p in self.projections]
 
         return
 

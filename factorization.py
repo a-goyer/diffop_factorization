@@ -21,15 +21,22 @@ def right_factor(L, prec=100, T0=5, verbose=False):
     or None if there is none.
     """
 
-    if not is_fuchsian(L):
+    fuchsian = is_fuchsian(L)
+    if not fuchsian:
         print("WARNING: Operator not fuchsian! Termination is not guaranteed.")
 
+    n = L.order()
     if L.order()==1: return None
-
-    if verbose: print("Operator =", L)
+    if verbose: print("Try to factorize an operator of order", n)
 
     OA = L.parent()
     z, Dz = L.base_ring().gen(), OA.gen()
+
+    rat_sol = L.rational_solutions()
+    if len(rat_sol)!=0:
+        f = rat_sol[0][0]
+        R = f*Dz - f.derivative()
+        return R
 
     z0 = 0
     while z0 in L.singularities():
@@ -44,17 +51,22 @@ def right_factor(L, prec=100, T0=5, verbose=False):
         eps = Radii.one() >> p
         try:
             mono = monodromy_matrices(K, 0, eps=eps)
-            if 4*min(customized_accuracy(mat.list()) for mat in mono)<3*prec:
-                p = 2*p
+            output_prec = min([customized_accuracy(mat.list()) for mat in mono], default=prec)
+            if output_prec<0:
+                p = p - output_prec + 10
                 if verbose: print("Need to increase precision :", p)
             else:
                 success = True
         except ZeroDivisionError:
             p = 2*p
 
+    if len(mono)==0:
+        raise NotImplementedError("The operator is not Fuschian.")
+
     try:
         V = InvSub(mono)
     except PrecisionError:
+        if verbose: print("Precision not good enough to detect an invariant subspace.")
         return right_factor(L, prec=2*prec, verbose=verbose)
 
     if V is None:
@@ -63,19 +75,20 @@ def right_factor(L, prec=100, T0=5, verbose=False):
 
     if verbose: print("Found an invariant subspace of dimension", d)
 
-    C = ComplexOptimisticField(prec, eps = Radii.one() >> prec//2)
-    T = max(pol.degree() for pol in K) + K.order() + T0
-    if verbose: print("T =", T)
-    S = PowerSeriesRing(C, 'z', T+d)
-    basis = [S(str(v)) for v in K.local_basis_expansions(ZZ(0), ZZ(T+d))]
-    f = V[0].change_ring(C)*vector(basis)
-    df = [f]
-    for k in range(d):
-        f = f.derivative()
-        df.append(f)
     try:
+        C = ComplexOptimisticField(prec, eps = Radii.one() >> prec//2)
+        T = max(pol.degree() for pol in K) + K.order() + T0
+        if verbose: print("T =", T)
+        S = PowerSeriesRing(C, 'z', T+d)
+        basis = [S(str(v)) for v in K.local_basis_expansions(ZZ(0), ZZ(T+d))]
+        f = V[0].change_ring(C)*vector(basis)
+        df = [f]
+        for k in range(d):
+            f = f.derivative()
+            df.append(f)
         P = [guess_rational(pol) for pol in hp_approx(df, T)]
-    except PrecisionError:
+
+    except (PrecisionError, ZeroDivisionError):
         return right_factor(L, prec=2*prec, T0=2*T0, verbose=verbose)
 
     R = OA(P)
@@ -86,7 +99,8 @@ def right_factor(L, prec=100, T0=5, verbose=False):
         return right_factor(L, prec=2*prec, T0=2*T0, verbose=verbose)
 
 
-def factor(L, verbose=False):
+
+def factors(L, verbose=False):
 
     R = right_factor(L, verbose=verbose)
     if R is None:
@@ -94,6 +108,7 @@ def factor(L, verbose=False):
     else:
         Q = L//R
         return factor(Q, verbose=verbose) + factor(R, verbose=verbose)
+
 
 
 #Free.<z,Dz> = FreeAlgebra(QQ)

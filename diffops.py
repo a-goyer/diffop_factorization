@@ -1,4 +1,7 @@
+from sage.rings.rational_field import QQ
 from sage.rings.qqbar import QQbar
+from sage.arith.functions import lcm
+from ore_algebra import DifferentialOperators
 
 
 
@@ -14,6 +17,9 @@ def is_fuchsian(L):
     """
 
     z, n = L.base_ring().gen(), L.order()
+
+    q = lcm([c.denominator() for c in L])
+    L = DifferentialOperators(QQ, 'z')[0](q*L)
     sing = L.leading_coefficient().roots(QQbar, multiplicities=False)
 
     for k, frac in enumerate(L.monic().coefficients()[:-1]):

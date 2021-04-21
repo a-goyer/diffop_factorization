@@ -500,7 +500,7 @@ def gen_eigenspaces(mat, *, projections=False):
     GenEigSpaces = []
     for i, (ev, m) in enumerate(s):
         b = ker((mat - ev*I)**m)
-        if len(b)<m:
+        if len(b)>m:
             raise PrecisionError("Cannot compute a basis of this generalized eigenspace. ")
         space = {'eigenvalue' : ev, 'multiplicity' : m, 'basis' : b}
         if projections:
