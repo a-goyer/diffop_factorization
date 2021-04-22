@@ -50,7 +50,10 @@ class Splitting():
                 basis.extend(s['basis'])
             T = T.block_sum(matrix(basis).transpose())
         self.basis = T*self.basis
-        invT = ~T
+        try:
+            invT = ~T
+        except ZeroDivisionError:
+            raise PrecisionError("Cannot compute the transition to the old basis from the new one.")
         self.matrices = [invT*M*T for M in self.matrices]
         self.projections = [invT*p*T for p in self.projections]
 
