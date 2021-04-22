@@ -9,6 +9,7 @@ from sage.rings.power_series_ring import PowerSeriesRing
 from sage.rings.real_mpfr import RealField
 from sage.rings.integer_ring import ZZ
 from sage.modules.free_module_element import vector
+from sage.rings.polynomial.polynomial_ring import PolynomialRing_field
 
 Radii = RealField(30)
 
@@ -21,12 +22,13 @@ def right_factor(L, prec=100, T0=5, verbose=False):
     or None if there is none.
     """
 
+    n = L.order()
+    if n<2: return None
+
     fuchsian = is_fuchsian(L)
     if not fuchsian:
         print("WARNING: Operator not fuchsian! Termination is not guaranteed.")
 
-    n = L.order()
-    if L.order()==1: return None
     if verbose: print("Try to factorize an operator of order", n)
 
     OA = L.parent()
@@ -56,6 +58,7 @@ def right_factor(L, prec=100, T0=5, verbose=False):
                 p = p - output_prec + 10
                 if verbose: print("Need to increase precision :", p)
             else:
+                if verbose: print("Monodromy computed")
                 success = True
         except ZeroDivisionError:
             p = 2*p
@@ -77,10 +80,20 @@ def right_factor(L, prec=100, T0=5, verbose=False):
 
     try:
         C = ComplexOptimisticField(prec, eps = Radii.one() >> prec//2)
-        T = max(pol.degree() for pol in K) + K.order() + T0
+        if isinstance(K.base_ring, PolynomialRing_field):
+            T = max(coeff.degree() for coeff in K) + K.order() + T0
+        else:
+            T = max(max(coeff.numerator().degree() for coeff in K), \
+            max(coeff.denominator().degree() for coeff in K) ) + T0
         if verbose: print("T =", T)
-        S = PowerSeriesRing(C, 'z', T+d)
-        basis = [S(str(v)) for v in K.local_basis_expansions(ZZ(0), ZZ(T+d))]
+        basis = K.local_basis_expansions(ZZ(0), ZZ(T+d))
+        S = PowerSeriesRing(C, default_prec=T+d)
+        for k, sol in enumerate(basis):
+            sol2 = S.zero()
+            for c, mon in sol:
+                if c!=0:
+                    sol2 += c*S.gen()**mon.n
+            basis[k] = sol2
         f = V[0].change_ring(C)*vector(basis)
         df = [f]
         for k in range(d):

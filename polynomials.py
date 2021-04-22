@@ -157,6 +157,9 @@ def radical(pol):
     d = GCD(pol, pol.derivative())
     rad = _clean(pol.quo_rem(d)[0])
 
+    if rad==0:
+        raise PrecisionError("Cannot compute the radical of this polynomial.")
+
     return rad
 
 
