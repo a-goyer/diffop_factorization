@@ -80,11 +80,10 @@ def right_factor(L, prec=100, T0=5, verbose=False):
 
     try:
         C = ComplexOptimisticField(prec, eps = Radii.one() >> prec//2)
-        if isinstance(K.base_ring, PolynomialRing_field):
+        if isinstance(K.base_ring(), PolynomialRing_field):
             T = max(coeff.degree() for coeff in K) + K.order() + T0
         else:
-            T = max(max(coeff.numerator().degree() for coeff in K), \
-            max(coeff.denominator().degree() for coeff in K) ) + T0
+            T = max(max(coeff.numerator().degree() for coeff in K), max(coeff.denominator().degree() for coeff in K)) + T0
         if verbose: print("T =", T)
         basis = K.local_basis_expansions(ZZ(0), ZZ(T+d))
         S = PowerSeriesRing(C, default_prec=T+d)
