@@ -11,7 +11,7 @@ sage: factors(L)
 [(-4*z - 2)*Dz - 2, (z + 1)*Dz - 1/2]
 ```
 
-## How to use this package?
+## Installation
 
 __Requirements:__
 - SageMath ([https://www.sagemath.org/](https://www.sagemath.org/))

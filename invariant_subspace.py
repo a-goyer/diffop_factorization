@@ -69,11 +69,11 @@ class Splitting():
                 p = self.projections[j]
                 p[s,s] = p[s,s] - self.C.one()
                 err = max(sum(p[i,j].above_abs() for j in range(self.n)) for i in range(self.n))
-                if err>1:
-                    raise PrecisionError('Projections are not precise enough.')
                 err = self.C.zero().add_error(err)
                 vec = self.I[s] + vector([err]*self.n)
                 V = orbit(self.matrices, vec)
+                if len(V)==0:
+                    raise PrecisionError('Projections are not precise enough.')
                 if len(V)<self.n:
                     T = self.basis
                     V = [T*v for v in V]

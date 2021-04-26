@@ -1,6 +1,7 @@
 from sage.rings.rational_field import QQ
 from sage.rings.qqbar import QQbar
 from sage.arith.functions import lcm
+from sage.arith.misc import valuation
 from ore_algebra import DifferentialOperators
 from sage.rings.polynomial.polynomial_ring import PolynomialRing_field
 
@@ -24,18 +25,16 @@ def is_fuchsian(L):
         q = lcm([c.denominator() for c in L])
         L = L.parent().change_ring(L.base_ring().base())(q*L)
 
-    sing = L.leading_coefficient().roots(QQbar, multiplicities=False)
-
-    for k, frac in enumerate(L.monic().coefficients()[:-1]):
-        for p in sing:
-            d = ((z-p)**(n-k)*frac).denominator()
-            if d(p)==0:
-                return False
+    coeffs = L.coefficients()
+    fac = coeffs.pop().factor()
+    for (f, m) in fac:
+        for k, ak in enumerate(coeffs):
+            mk = valuation(ak, f)
+            if mk - m < k - n: return False
 
     L = L.annihilator_of_composition(1/z)
     for k, frac in enumerate(L.monic().coefficients()[:-1]):
         d = (z**(n-k)*frac).denominator()
-        if d(0)==0:
-            return False
+        if d(0)==0: return False
 
     return True

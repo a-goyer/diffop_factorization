@@ -15,7 +15,7 @@ Radii = RealField(30)
 
 
 
-def right_factor(L, prec=100, T0=5, verbose=False):
+def right_factor(L, prec=100, T0=5, verbose=False, fuchsian=None):
 
     r"""
     Return a nontrivial right-hand factor of the linear differential operator L
@@ -25,9 +25,10 @@ def right_factor(L, prec=100, T0=5, verbose=False):
     n = L.order()
     if n<2: return None
 
-    fuchsian = is_fuchsian(L)
-    if not fuchsian:
-        print("WARNING: Operator not fuchsian! Termination is not guaranteed.")
+    if fuchsian==None:
+        fuchsian = is_fuchsian(L)
+        if not fuchsian:
+            print("WARNING: Operator not fuchsian! Termination is not guaranteed.")
 
     if verbose: print("Try to factorize an operator of order", n)
 
@@ -70,7 +71,7 @@ def right_factor(L, prec=100, T0=5, verbose=False):
         V = InvSub(mono)
     except PrecisionError:
         if verbose: print("Precision not good enough to detect an invariant subspace.")
-        return right_factor(L, prec=2*prec, verbose=verbose)
+        return right_factor(L, prec=2*prec, verbose=verbose, fuchsian=fuchsian)
 
     if V is None:
         return None
@@ -101,25 +102,30 @@ def right_factor(L, prec=100, T0=5, verbose=False):
         P = [guess_rational(pol) for pol in hp_approx(df, T)]
 
     except (PrecisionError, ZeroDivisionError):
-        return right_factor(L, prec=2*prec, T0=2*T0, verbose=verbose)
+        return right_factor(L, prec=2*prec, T0=2*T0, verbose=verbose, fuchsian=fuchsian)
 
     R = OA(P)
     if K%R==0:
         R = OA(R.annihilator_of_composition(z - z0))
         return R
     else:
-        return right_factor(L, prec=2*prec, T0=2*T0, verbose=verbose)
+        return right_factor(L, prec=2*prec, T0=2*T0, verbose=verbose, fuchsian=fuchsian)
 
 
 
-def factors(L, verbose=False):
+def factors(L, verbose=False, fuchsian=None):
 
-    R = right_factor(L, verbose=verbose)
+    if fuchsian==None:
+        fuchsian = is_fuchsian(L)
+        if not fuchsian:
+            print("WARNING: Operator not fuchsian! Termination is not guaranteed.")
+
+    R = right_factor(L, verbose=verbose, fuchsian=fuchsian)
     if R is None:
         return [L]
     else:
         Q = L//R
-        return factors(Q, verbose=verbose) + factors(R, verbose=verbose)
+        return factors(Q, verbose=verbose, fuchsian=fuchsian) + factors(R, verbose=verbose, fuchsian=fuchsian)
 
 
 
