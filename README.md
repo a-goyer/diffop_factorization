@@ -4,10 +4,10 @@
 
 ```
 sage: from ore_algebra import DifferentialOperators                            
-sage: from diffop_factorization import factors                                 
+sage: from diffop_factorization import dfactor                                 
 sage: Diffops, z, Dz = DifferentialOperators(QQ, 'z')                          
 sage: L = (-4*z^2 - 6*z - 2)*Dz^2 + (-4*z - 3)*Dz + 1                          
-sage: factors(L)                                                               
+sage: dfactor(L)                                                               
 [(-4*z - 2)*Dz - 2, (z + 1)*Dz - 1/2]
 ```
 
