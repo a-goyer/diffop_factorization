@@ -1,4 +1,4 @@
-# Package for the factorization of linear differential operators whose coefficients are polynomials.
+# Package for the factorization of linear differential operators whose coefficients are rational functions.
 
 ## Example
 

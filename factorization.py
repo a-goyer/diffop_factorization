@@ -41,8 +41,9 @@ def right_dfactor(L, prec=100, T0=5, verbose=False, fuchsian=None):
         R = f*Dz - f.derivative()
         return R
 
+    coeffs = L.monic().coefficients()
     z0 = 0
-    while z0 in L.singularities():
+    while min(c.valuation(z-z0) for c in coeffs)<0:
         z0 += 1
     K = OA(L.annihilator_of_composition(z + z0))
 
@@ -102,6 +103,7 @@ def right_dfactor(L, prec=100, T0=5, verbose=False, fuchsian=None):
         P = [guess_rational(pol) for pol in hp_approx(df, T)]
 
     except (PrecisionError, ZeroDivisionError):
+        if verbose: print("Precision not good enough to guess a candidate right factor.")
         return right_dfactor(L, prec=2*prec, T0=2*T0, verbose=verbose, fuchsian=fuchsian)
 
     R = OA(P)
@@ -109,6 +111,7 @@ def right_dfactor(L, prec=100, T0=5, verbose=False, fuchsian=None):
         R = OA(R.annihilator_of_composition(z - z0))
         return R
     else:
+        if verbose: print("Candidate right factor not good.")
         return right_dfactor(L, prec=2*prec, T0=2*T0, verbose=verbose, fuchsian=fuchsian)
 
 
@@ -130,12 +133,4 @@ def dfactor(L, verbose=False, fuchsian=None):
         return [L]
     else:
         Q = L//R
-        res1 = dfactor(Q, verbose=verbose, fuchsian=fuchsian)
-        res2 = dfactor(R, verbose=verbose, fuchsian=fuchsian)
-        return res1 + res2
-
-
-
-#Free.<z,Dz> = FreeAlgebra(QQ)
-#Dop.<z,Dz> = Free.g_algebra(relations={Dz*z: z*Dz+1})
-#dop = (z^2*Dz+3)*((z-3)*Dz+4*z^5)
+        return dfactor(Q, verbose=verbose) + dfactor(R, verbose=verbose)
