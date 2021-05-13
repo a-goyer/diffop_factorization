@@ -87,6 +87,9 @@ class ComplexOptimisticBall(RingElement):
     def rad(self):
         return self.value.rad()
 
+    def mid(self):
+        return self.value.mid()
+
     def below_abs(self):
         return self.value.below_abs()
 

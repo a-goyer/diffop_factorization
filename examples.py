@@ -34,3 +34,13 @@ bostan_ex = lambda k: z*Dz**2 + (2-z)*Dz + k
 # This example is from van Hoeij's phd thesis (section 3.1). It seems that its
 # only right factor has a degree n^2. !Not Fuchsian!
 vanhoeij_ex = lambda n: Dz**2 - (1/n)*Dz + n/z
+
+# This reducible operator does not admits factorization with coefficients in QQ (to be confirmed).
+# Factorization in QQbar: (z^2*Dz + (1 + i)*z)*(Dz - i/z).
+QQbar_ex = z**2*Dz**2 + z*Dz + 1
+
+# Annihilator of the hypergeometric function 2F1(a,b;c;z).
+hypergeo = lambda a,b,c: z*(1 - z)*Dz**2 + (c - (a + b + 1)*z)*Dz - a*b
+
+# This operator admits no factorization in the first Weyl algebra.
+irr_weyl = Dz**2 + (-z**2 + 2*z)*Dz + z - 2

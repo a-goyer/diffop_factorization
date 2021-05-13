@@ -15,7 +15,7 @@ Radii = RealField(30)
 
 
 
-def right_dfactor(L, prec=100, T0=5, verbose=False, fuchsian=None):
+def right_dfactor(L, prec=100, T0=20, verbose=False, fuchsian=None):
 
     r"""
     Return a nontrivial right-hand factor of the linear differential operator L
@@ -28,7 +28,7 @@ def right_dfactor(L, prec=100, T0=5, verbose=False, fuchsian=None):
     if fuchsian==None:
         fuchsian = is_fuchsian(L)
         if not fuchsian:
-            print("WARNING: Operator not fuchsian! Termination is not guaranteed.")
+            print("WARNING! The operator is not fuchsian: termination is not guaranteed.")
 
     if verbose: print("Try to factorize an operator of order", n)
 
@@ -51,13 +51,15 @@ def right_dfactor(L, prec=100, T0=5, verbose=False, fuchsian=None):
 
     p = prec
     success = False
+    cpt = 0
     while not success:
         eps = Radii.one() >> p
         try:
             mono = monodromy_matrices(K, 0, eps=eps)
-            output_prec = min([customized_accuracy(mat.list()) for mat in mono], default=prec)
-            if output_prec<0:
-                p = p - output_prec + 10
+            output_prec = min([customized_accuracy(mat.list()) for mat in mono], default=p)
+            if output_prec<prec//2:
+                p = prec//2 + p - output_prec + (100<<cpt)
+                cpt = cpt + 1
                 if verbose: print("Need to increase precision :", p)
             else:
                 if verbose: print("Monodromy computed")
@@ -66,22 +68,23 @@ def right_dfactor(L, prec=100, T0=5, verbose=False, fuchsian=None):
             p = 2*p
 
     if len(mono)==0:
-        raise NotImplementedError("The operator is not Fuschian.")
+        raise NotImplementedError("Cannot continue. The operator is not Fuschian.")
 
     try:
         V = InvSub(mono)
     except PrecisionError:
         if verbose: print("Precision not good enough to detect an invariant subspace.")
-        return right_dfactor(L, prec=2*prec, verbose=verbose, fuchsian=fuchsian)
+        return right_dfactor(L, prec=2*prec, T0=T0, verbose=verbose, fuchsian=fuchsian)
 
     if V is None:
         return None
     d = len(V)
 
     if verbose: print("Found an invariant subspace of dimension", d)
-
     try:
-        C = ComplexOptimisticField(prec, eps = Radii.one() >> prec//2)
+        p = min([customized_accuracy(v.list()) for v in V], default=output_prec)
+        if p<20: raise PrecisionError("Loosing too much precision to continue.")
+        C = ComplexOptimisticField(p, eps = Radii.one()>>p//2)
         if isinstance(K.base_ring(), PolynomialRing_field):
             T = max(coeff.degree() for coeff in K) + K.order() + T0
         else:
@@ -122,11 +125,6 @@ def dfactor(L, verbose=False, fuchsian=None):
     Return a list of irreductibles operators [L1, L2, ..., Lr] such that L =
     L1.L2...Lr.
     """
-
-    if fuchsian==None:
-        fuchsian = is_fuchsian(L)
-        if not fuchsian:
-            print("WARNING: Operator not fuchsian! Termination is not guaranteed.")
 
     R = right_dfactor(L, verbose=verbose, fuchsian=fuchsian)
     if R is None:

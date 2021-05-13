@@ -113,14 +113,16 @@ def guess_rational(x, p=None):
 
 
 
-def guess_algebraic(x, p = 30, d = 3):
+def guess_algebraic(x, p=None, d=2):
 
     r"""
-    Return the simplest algebraic number of degree at most d equals to x to the
-    accuracy p.
+    Return the simplest algebraic number of degree at most d and equals to x at
+    the accuracy p.
 
     INPUT:
      - 'x' - a complex number or a list of complex numbers
+     - 'p' -
+     - 'd' -
 
     OUTPUT:
      - 'a' - an algebraic number or a list of algebraic numbers
@@ -137,10 +139,21 @@ def guess_algebraic(x, p = 30, d = 3):
     """
 
     if isinstance(x, list) :
-        a = [guess_algebraic(c) for c in x]
-        return a
+        r = [guess_algebraic(c, p=p, d=d) for c in x]
+        return r
 
-    minpol = algdep(x, degree = d, known_bits = p)
+    if isinstance(x, FreeModuleElement_generic_dense) or \
+    isinstance(x, Matrix_dense) or isinstance(x, Polynomial):
+        r = x.parent().change_ring(QQbar)(guess_rational(x.list(), p=p, d=d))
+        return r
+
+    if p is None:
+        eps = x.parent().eps
+        p = floor(-log(eps, 2))
+    else:
+        eps = RealField(30).one() >> p
+
+    minpol = algdep(x.mid(), degree=d, known_bits=p)
     roots = minpol.roots(QQbar, multiplicities=False)
     l = [r-x for r in roots]
     i = min(range(len(l)), key = lambda i: abs(l[i])); i
