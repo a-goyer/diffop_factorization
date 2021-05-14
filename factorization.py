@@ -15,7 +15,7 @@ Radii = RealField(30)
 
 
 
-def right_dfactor(L, prec=100, T0=20, verbose=False, fuchsian=None):
+def right_dfactor(L, prec=100, T0=5, verbose=False, fuchsian=None):
 
     r"""
     Return a nontrivial right-hand factor of the linear differential operator L
