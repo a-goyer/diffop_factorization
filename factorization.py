@@ -14,119 +14,143 @@ from sage.rings.polynomial.polynomial_ring import PolynomialRing_field
 Radii = RealField(30)
 
 
-
-def right_dfactor(L, prec=100, T0=5, verbose=False, fuchsian=None):
-
-    r"""
-    Return a nontrivial right-hand factor of the linear differential operator L
-    or None if there is none.
-    """
-
-    n = L.order()
-    if n<2: return None
-
-    if fuchsian==None:
-        fuchsian = is_fuchsian(L)
-        if not fuchsian:
-            print("WARNING! The operator is not fuchsian: termination is not guaranteed.")
-
-    if verbose: print("Try to factorize an operator of order", n)
-
-    OA = L.parent()
-    z, Dz = L.base_ring().gen(), OA.gen()
-
-    rat_sol = L.rational_solutions()
-    if len(rat_sol)!=0:
-        f = rat_sol[0][0]
-        R = f*Dz - f.derivative()
-        return R
-
-    coeffs = L.monic().coefficients()
-    z0 = 0
-    while min(c.valuation(z-z0) for c in coeffs)<0:
-        z0 += 1
-    K = OA(L.annihilator_of_composition(z + z0))
-
-    if verbose: print("Monodromy computation with prec =", prec)
-
-    p = prec
-    success = False
-    cpt = 0
+def _mono_computation(L, prec, loss, verbose):
+    k, success = 50, False
     while not success:
-        eps = Radii.one() >> p
         try:
-            mono = monodromy_matrices(K, 0, eps=eps)
+            p = 2*prec + loss + k
+            mono = monodromy_matrices(L, 0, Radii.one()>>p)
             output_prec = min([customized_accuracy(mat.list()) for mat in mono], default=p)
-            if output_prec<prec//2:
-                p = prec//2 + p - output_prec + (100<<cpt)
-                cpt = cpt + 1
-                if verbose: print("Need to increase precision :", p)
+            loss = max(loss, p - output_prec)
+            if output_prec<2*prec:
+                k = k<<1
             else:
-                if verbose: print("Monodromy computed")
                 success = True
+                prec = output_prec
         except ZeroDivisionError:
-            p = 2*p
+            k = k<<1
+    return mono, prec, loss
 
-    if len(mono)==0:
-        raise NotImplementedError("Cannot continue. The operator is not Fuschian.")
 
-    try:
-        V = InvSub(mono)
-    except PrecisionError:
-        if verbose: print("Precision not good enough to detect an invariant subspace.")
-        return right_dfactor(L, prec=2*prec, T0=T0, verbose=verbose, fuchsian=fuchsian)
 
-    if V is None:
-        return None
-    d = len(V)
+def _T(L):
+    if isinstance(L.base_ring(), PolynomialRing_field):
+        deg = max(coeff.degree() for coeff in L)
+    else:
+        deg = max(max(coeff.numerator().degree() for coeff in L), max(coeff.denominator().degree() for coeff in L))
+    T = max(100, 2*deg + L.order())
+    return T
 
-    if verbose: print("Found an invariant subspace of dimension", d)
-    try:
-        p = min([customized_accuracy(v.list()) for v in V], default=output_prec)
-        if p<20: raise PrecisionError("Loosing too much precision to continue.")
-        C = ComplexOptimisticField(p, eps = Radii.one()>>p//2)
-        if isinstance(K.base_ring(), PolynomialRing_field):
-            T = max(coeff.degree() for coeff in K) + K.order() + T0
-        else:
-            T = max(max(coeff.numerator().degree() for coeff in K), max(coeff.denominator().degree() for coeff in K)) + T0
-        if verbose: print("T =", T)
-        basis = K.local_basis_expansions(ZZ(0), ZZ(T+d))
-        S = PowerSeriesRing(C, default_prec=T+d)
+
+
+def _guess(L, V, C, p, T):
+    """ return 'Fail' if no PrecisionError is raised and no result is found. """
+
+    current_p = min([customized_accuracy(v.list()) for v in V], default=p)
+    if current_p<20: raise PrecisionError("Loosing too much precision to attempt the guessing part.")
+
+    T0, D0, d = 25, 0, len(V)
+
+    while T0<=T:
+        basis = L.local_basis_expansions(ZZ(0), ZZ(T0+d))
+        S = PowerSeriesRing(C, default_prec=T0+d)
         for k, sol in enumerate(basis):
             sol2 = S.zero()
             for c, mon in sol:
                 if c!=0:
                     sol2 += c*S.gen()**mon.n
             basis[k] = sol2
-        f = V[0].change_ring(C)*vector(basis)
+        f = V[0]*vector(basis)
         df = [f]
         for k in range(d):
             f = f.derivative()
             df.append(f)
-        P = [guess_rational(pol) for pol in hp_approx(df, T)]
+        P = hp_approx(df, T0)
+        D1 = max(pol.degree() for pol in P)
+        if D0==D1: # improvement: increase algebraicity degree.
+            P = [guess_rational(pol) for pol in P]
+            L2 = L.parent()(P)
+            if L%L2==0:
+                return L2
+            else:
+                print("WARNING: problem seems to come from degree of algebraicity (not implemented yet).")
+                raise PrecisionError("Candidate right factor not good.")
+        else:
+            D0 = D1
+            T0 = 2*T0
+    print('cc')
+    return 'Fail'
 
-    except (PrecisionError, ZeroDivisionError):
-        if verbose: print("Precision not good enough to guess a candidate right factor.")
-        return right_dfactor(L, prec=2*prec, T0=2*T0, verbose=verbose, fuchsian=fuchsian)
 
-    R = OA(P)
-    if K%R==0:
-        R = OA(R.annihilator_of_composition(z - z0))
-        return R
+
+def right_dfactor(L, prec=50, loss=0, T=None, fuchsian=None, verbose=False):
+
+    n = L.order()
+    if n<2: return None
+
+    if fuchsian==None:
+        if verbose: print("Try to factorize an operator of order " + str(n) + ".")
+        fuchsian = is_fuchsian(L)
+        if not fuchsian:
+            print("WARNING! The operator is not fuchsian: termination is not guaranteed.")
+
+    z, Dz = L.base_ring().gen(), L.parent().gen()
+
+    rat_sol = L.rational_solutions()
+    if len(rat_sol)!=0:
+        f = rat_sol[0][0]
+        L2 = f*Dz - f.derivative()
+        return L2
+
+    coeffs, z0 = L.monic().coefficients(), 0
+    while min(c.valuation(z - z0) for c in coeffs)<0: z0 += 1
+    K = L.annihilator_of_composition(z + z0)
+
+    if verbose: print("Monodromy computation with wanted prec = " + str(2*prec) + ".")
+    mono, prec, loss = _mono_computation(K, prec, loss, verbose=verbose)
+    if len(mono)==0:
+        raise NotImplementedError("Cannot continue. The operator is not Fuschian.")
+
+    if verbose: print("Monodromy computed with prec = " + str(prec) + ".")
+    C = ComplexOptimisticField(prec, eps=Radii.one()>>(prec//4))
+    #mono = [mat.change_ring(C) for mat in mono]
+
+    try:
+        V = InvSub(mono)
+    except PrecisionError:
+        if verbose: print("Precision is not good enough for invariant subspace computation.")
+        return right_dfactor(L, prec, loss, T, fuchsian, verbose)
+
+    if V==None: return None
+    if verbose: print("Found an invariant subspace of dimension "+str(len(V))+".")
+
+    V = [v.change_ring(C) for v in V]
+
+    if T==None:
+        T = _T(K)
+        if verbose: print("Order of truncation = " + str(T) + ".")
+    try:
+        L2 = _guess(K, V, C, prec//4, T)
+    except PrecisionError:
+        if verbose: print("Precision not good enough for the guessing part.")
+        return right_dfactor(L, prec, loss, T, fuchsian, verbose)
+
+    if L2=='Fail':
+        if verbose: print("New maximal order of truncation = " + str(2*T) + ".")
+        return right_dfactor(L, prec, loss, 2*T, fuchsian, verbose)
     else:
-        if verbose: print("Candidate right factor not good.")
-        return right_dfactor(L, prec=2*prec, T0=2*T0, verbose=verbose, fuchsian=fuchsian)
+        L2 = L2.annihilator_of_composition(z - z0)
+        return L2
 
 
-
-def dfactor(L, verbose=False, fuchsian=None):
+def dfactor(L, verbose=False):
 
     r"""
-    Return a list of irreductibles operators [L1, L2, ..., Lr] such that L =
+    Return a list of irreductible operators [L1, L2, ..., Lr] such that L =
     L1.L2...Lr.
     """
 
-    R = right_dfactor(L, verbose=verbose, fuchsian=fuchsian)
+    R = right_dfactor(L, verbose=verbose)
     if R is None:
         return [L]
     else:

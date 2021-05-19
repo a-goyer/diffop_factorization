@@ -1,13 +1,14 @@
 from .precision_error import PrecisionError
 from sage.rings.real_mpfr import RealField
 from sage.rings.rational_field import QQ
-from sage.rings.qqbar import QQbar
+from sage.rings.qqbar import QQbar, number_field_elements_from_algebraics
 from sage.matrix.constructor import matrix
 from sage.matrix.matrix_dense import Matrix_dense
 from sage.modules.free_module_element import FreeModuleElement_generic_dense
 from sage.rings.polynomial.polynomial_element import Polynomial
 from sage.functions.other import floor
 from sage.functions.log import log
+from sage.arith.misc import algdep
 
 
 
@@ -22,7 +23,7 @@ def hp_approx (F, d):
     - p1*f1 + ... + pm*fm = O(x^d).
 
     Note that this function calls some methods of the Library of Polynomial
-    Matrices, see https://github.com/vneiger/pml to install it.
+    Matrices, see https://github.com/vneiger/pml to install it (if necessary).
 
     INPUT:
      - "F" - a list of polynomials or series
@@ -116,16 +117,16 @@ def guess_rational(x, p=None):
 def guess_algebraic(x, p=None, d=2):
 
     r"""
-    Return the simplest algebraic number of degree at most d and equals to x at
-    the accuracy p.
+    Guess algebraic coefficients for a vector or a matrix or a polynomial or a
+    list or just a complex number.
 
     INPUT:
-     - 'x' - a complex number or a list of complex numbers
-     - 'p' -
-     - 'd' -
+     - 'x' - an object with approximate coefficients
+     - 'p' - a positive integer
+     - 'd' - a positive integer
 
     OUTPUT:
-     - 'a' - an algebraic number or a list of algebraic numbers
+     - 'a' - an object with algebraic coefficients
 
     EXAMPLES::
 
@@ -139,24 +140,19 @@ def guess_algebraic(x, p=None, d=2):
     """
 
     if isinstance(x, list) :
-        r = [guess_algebraic(c, p=p, d=d) for c in x]
-        return r
+        l = [guess_algebraic(c, p=p, d=d) for c in x]
+        return l
 
     if isinstance(x, FreeModuleElement_generic_dense) or \
     isinstance(x, Matrix_dense) or isinstance(x, Polynomial):
-        r = x.parent().change_ring(QQbar)(guess_rational(x.list(), p=p, d=d))
+        r = x.parent().change_ring(QQbar)(guess_algebraic(x.list(), p=p, d=d))
         return r
 
-    if p is None:
-        eps = x.parent().eps
-        p = floor(-log(eps, 2))
-    else:
-        eps = RealField(30).one() >> p
+    if p is None: p = floor(-log(x.parent().eps, 2))
 
-    minpol = algdep(x.mid(), degree=d, known_bits=p)
-    roots = minpol.roots(QQbar, multiplicities=False)
-    l = [r-x for r in roots]
-    i = min(range(len(l)), key = lambda i: abs(l[i])); i
+    pol = algdep(x.mid(), degree=d, known_bits=p)
+    roots = pol.roots(QQbar, multiplicities=False)
+    i = min(range(len(roots)), key = lambda i: abs(roots[i] - x.mid()))
     a = roots[i]
 
     return a

@@ -38,3 +38,18 @@ def is_fuchsian(L):
         if d(0)==0: return False
 
     return True
+
+
+# (too slow, we have to do differently)
+#def degree_bound(L):
+#    """ Assumption: L is Fuchsian. """
+#    if not isinstance(F, PolynomialRing_field):
+#        q = lcm([c.denominator() for c in L])
+#        L = L.parent().change_ring(L.base_ring().base())(q*L)
+#    sing = L.leading_coefficient().roots(QQbar, multiplicities=False)
+#
+#    S =
+#    E =
+#
+#    db = lambda r: (r**2)*(S + 1)*E + r*S + (1/2)*(r**2)*(r - 1)*(S - 1)
+#    return db
