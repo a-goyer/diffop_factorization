@@ -1,0 +1,39 @@
+operator: fcc3
+total_time: 0.148
+mono_time: 0.128
+orders: [3]
+
+operator: fcc4
+total_time: 1.32
+mono_time: 1.27
+orders: [4]
+
+operator: fcc5
+total_time: 12.9
+mono_time: 12.7
+orders: [6]
+
+operator: fcc6
+total_time: 433.
+mono_time: 432.
+orders: [8]
+
+operator: fcc3**2
+total_time: 3.23
+mono_time: 2.94
+orders: [3, 3]
+
+operator: fcc4*fcc3
+total_time: 31.5
+mono_time: 30.3
+orders: [4, 3]
+
+operator: fcc3*fcc4
+total_time: 24.8
+mono_time: 23.7
+orders: [3, 4]
+
+operator: fcc4**2
+total_time: 108.
+mono_time: 105.
+orders: [4, 4]

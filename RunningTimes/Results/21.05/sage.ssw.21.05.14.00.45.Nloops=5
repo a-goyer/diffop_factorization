@@ -1,0 +1,380 @@
+operator: ssw.dop[1,0,0]
+total_time: 0.193
+mono_time: 0.164
+orders: [2, 1]
+
+operator: ssw.dop[2,0,0]
+total_time: 0.184
+mono_time: 0.156
+orders: [2, 1]
+
+operator: ssw.dop[3,0,0]
+total_time: 0.440
+mono_time: 0.381
+orders: [2, 1, 1]
+
+operator: ssw.dop[4,0,0]
+total_time: 0.363
+mono_time: 0.305
+orders: [2, 1, 1]
+
+operator: ssw.dop[5,0,0]
+total_time: 0.211
+mono_time: 0.182
+orders: [2, 1]
+
+operator: ssw.dop[6,0,0]
+total_time: 0.505
+mono_time: 0.441
+orders: [2, 1, 1]
+
+operator: ssw.dop[7,0,0]
+total_time: 0.255
+mono_time: 0.226
+orders: [2, 1]
+
+operator: ssw.dop[8,0,0]
+total_time: 0.462
+mono_time: 0.400
+orders: [2, 1, 1]
+
+operator: ssw.dop[9,0,0]
+total_time: 0.766
+mono_time: 0.703
+orders: [2, 1, 1]
+
+operator: ssw.dop[10,0,0]
+total_time: 0.814
+mono_time: 0.749
+orders: [2, 1, 1]
+
+operator: ssw.dop[11,0,0]
+total_time: 0.252
+mono_time: 0.222
+orders: [2, 1]
+
+operator: ssw.dop[12,0,0]
+total_time: 0.475
+mono_time: 0.414
+orders: [2, 1, 1]
+
+operator: ssw.dop[13,0,0]
+total_time: 0.774
+mono_time: 0.712
+orders: [2, 1, 1]
+
+operator: ssw.dop[14,0,0]
+total_time: 0.822
+mono_time: 0.756
+orders: [2, 1, 1]
+
+operator: ssw.dop[15,0,0]
+total_time: 0.212
+mono_time: 0.183
+orders: [2, 1]
+
+operator: ssw.dop[16,0,0]
+total_time: 0.515
+mono_time: 0.452
+orders: [2, 1, 1]
+
+operator: ssw.dop[17,0,0]
+total_time: 0.219
+mono_time: 0.189
+orders: [2, 1]
+
+operator: ssw.dop[18,0,0]
+total_time: 0.316
+mono_time: 0.258
+orders: [2, 1, 1]
+
+operator: ssw.dop[19,0,0]
+total_time: 0.255
+mono_time: 0.206
+orders: [2, 1, 1]
+
+operator: ssw.dop[1,0,1]
+total_time: 0.184
+mono_time: 0.133
+orders: [2, 1, 1]
+
+operator: ssw.dop[2,0,1]
+total_time: 0.246
+mono_time: 0.201
+orders: [2, 1, 1]
+
+operator: ssw.dop[3,0,1]
+total_time: 0.700
+mono_time: 0.635
+orders: [2, 1, 1]
+
+operator: ssw.dop[4,0,1]
+total_time: 0.364
+mono_time: 0.310
+orders: [2, 1, 1]
+
+operator: ssw.dop[5,0,1]
+total_time: 28.2
+mono_time: 27.7
+orders: [2, 1, 1, 1, 1]
+
+operator: ssw.dop[6,0,1]
+total_time: 50.6
+mono_time: 49.8
+orders: [2, 1, 1, 1, 1]
+
+operator: ssw.dop[7,0,1]
+total_time: 18.8
+mono_time: 18.3
+orders: [2, 1, 1, 1, 1]
+
+operator: ssw.dop[8,0,1]
+total_time: 16.0
+mono_time: 15.6
+orders: [2, 1, 1, 1, 1]
+
+operator: ssw.dop[9,0,1]
+total_time: 57.0
+mono_time: 56.2
+orders: [2, 1, 1, 1, 1]
+
+operator: ssw.dop[10,0,1]
+total_time: 72.1
+mono_time: 71.1
+orders: [2, 1, 1, 1, 1]
+
+operator: ssw.dop[11,0,1]
+total_time: 11.4
+mono_time: 11.0
+orders: [2, 1, 1, 1]
+
+operator: ssw.dop[12,0,1]
+total_time: 21.8
+mono_time: 21.3
+orders: [2, 1, 1, 1, 1]
+
+operator: ssw.dop[13,0,1]
+total_time: 64.9
+mono_time: 64.1
+orders: [2, 1, 1, 1, 1]
+
+operator: ssw.dop[14,0,1]
+total_time: 82.1
+mono_time: 81.2
+orders: [2, 1, 1, 1, 1]
+
+operator: ssw.dop[15,0,1]
+total_time: 13.9
+mono_time: 13.5
+orders: [2, 1, 1, 1]
+
+operator: ssw.dop[16,0,1]
+total_time: 33.0
+mono_time: 32.5
+orders: [2, 1, 1, 1, 1]
+
+operator: ssw.dop[17,0,1]
+total_time: 6.81
+mono_time: 6.54
+orders: [2, 1, 1, 1, 1]
+
+operator: ssw.dop[18,0,1]
+total_time: 0.0420
+mono_time: None
+orders: [1, 1, 1, 1]
+
+operator: ssw.dop[19,0,1]
+total_time: 0.195
+mono_time: 0.167
+orders: [2, 1]
+
+operator: ssw.dop[1,1,0]
+total_time: 0.183
+mono_time: 0.133
+orders: [2, 1, 1]
+
+operator: ssw.dop[2,1,0]
+total_time: 0.250
+mono_time: 0.205
+orders: [2, 1, 1]
+
+operator: ssw.dop[3,1,0]
+total_time: 0.297
+mono_time: 0.242
+orders: [2, 1, 1]
+
+operator: ssw.dop[4,1,0]
+total_time: 0.371
+mono_time: 0.315
+orders: [2, 1, 1]
+
+operator: ssw.dop[5,1,0]
+total_time: 0.210
+mono_time: 0.181
+orders: [2, 1]
+
+operator: ssw.dop[6,1,0]
+total_time: 0.822
+mono_time: 0.742
+orders: [2, 1, 1]
+
+operator: ssw.dop[7,1,0]
+total_time: 0.259
+mono_time: 0.230
+orders: [2, 1]
+
+operator: ssw.dop[8,1,0]
+total_time: 0.568
+mono_time: 0.501
+orders: [2, 1, 1]
+
+operator: ssw.dop[9,1,0]
+total_time: 0.726
+mono_time: 0.662
+orders: [2, 1, 1]
+
+operator: ssw.dop[10,1,0]
+total_time: 1.01
+mono_time: 0.935
+orders: [2, 1, 1]
+
+operator: ssw.dop[11,1,0]
+total_time: 0.257
+mono_time: 0.226
+orders: [2, 1]
+
+operator: ssw.dop[12,1,0]
+total_time: 0.567
+mono_time: 0.501
+orders: [2, 1, 1]
+
+operator: ssw.dop[13,1,0]
+total_time: 0.750
+mono_time: 0.687
+orders: [2, 1, 1]
+
+operator: ssw.dop[14,1,0]
+total_time: 1.01
+mono_time: 0.944
+orders: [2, 1, 1]
+
+operator: ssw.dop[15,1,0]
+total_time: 0.214
+mono_time: 0.185
+orders: [2, 1]
+
+operator: ssw.dop[16,1,0]
+total_time: 0.813
+mono_time: 0.738
+orders: [2, 1, 1]
+
+operator: ssw.dop[17,1,0]
+total_time: 6.92
+mono_time: 6.62
+orders: [2, 1, 1, 1, 1]
+
+operator: ssw.dop[18,1,0]
+total_time: 0.0414
+mono_time: None
+orders: [1, 1, 1, 1]
+
+operator: ssw.dop[19,1,0]
+total_time: 0.460
+mono_time: 0.394
+orders: [2, 1, 1]
+
+operator: ssw.dop[1,1,1]
+total_time: 0.193
+mono_time: 0.166
+orders: [2, 1]
+
+operator: ssw.dop[2,1,1]
+total_time: 0.146
+mono_time: 0.115
+orders: [2, 1]
+
+operator: ssw.dop[3,1,1]
+total_time: 0.424
+mono_time: 0.386
+orders: [2, 1]
+
+operator: ssw.dop[4,1,1]
+total_time: 0.342
+mono_time: 0.308
+orders: [2, 1]
+
+operator: ssw.dop[5,1,1]
+total_time: 15.5
+mono_time: 15.2
+orders: [2, 1, 1, 1]
+
+operator: ssw.dop[6,1,1]
+total_time: 22.5
+mono_time: 22.1
+orders: [2, 1, 1, 1]
+
+operator: ssw.dop[7,1,1]
+total_time: 18.8
+mono_time: 18.5
+orders: [2, 1, 1, 1]
+
+operator: ssw.dop[8,1,1]
+total_time: 13.1
+mono_time: 12.7
+orders: [2, 1, 1, 1]
+
+operator: ssw.dop[9,1,1]
+total_time: 28.7
+mono_time: 28.2
+orders: [2, 1, 1, 1]
+
+operator: ssw.dop[10,1,1]
+total_time: 35.2
+mono_time: 34.4
+orders: [2, 1, 1, 1]
+
+operator: ssw.dop[11,1,1]
+total_time: 6.78
+mono_time: 6.54
+orders: [2, 1, 1, 1]
+
+operator: ssw.dop[12,1,1]
+total_time: 10.4
+mono_time: 10.1
+orders: [2, 1, 1, 1]
+
+operator: ssw.dop[13,1,1]
+total_time: 38.3
+mono_time: 37.9
+orders: [2, 1, 1, 1]
+
+operator: ssw.dop[14,1,1]
+total_time: 58.9
+mono_time: 58.3
+orders: [2, 1, 1, 1]
+
+operator: ssw.dop[15,1,1]
+total_time: 10.9
+mono_time: 10.6
+orders: [2, 1, 1, 1]
+
+operator: ssw.dop[16,1,1]
+total_time: 12.2
+mono_time: 11.9
+orders: [2, 1, 1, 1]
+
+operator: ssw.dop[17,1,1]
+total_time: 0.0213
+mono_time: None
+orders: [1, 1, 1]
+
+operator: ssw.dop[18,1,1]
+total_time: 0.0214
+mono_time: None
+orders: [1, 1, 1]
+
+operator: ssw.dop[19,1,1]
+total_time: 0.186
+mono_time: 0.133
+orders: [2, 1, 1]
+

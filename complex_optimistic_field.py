@@ -105,6 +105,9 @@ class ComplexOptimisticBall(RingElement):
     def accuracy(self):
         return self.value.accuracy()
 
+    def add_error(self, arg):
+        return self.value.add_error(arg)
+
 class ComplexOptimisticField(UniqueRepresentation, Field):
 
     Element = ComplexOptimisticBall
