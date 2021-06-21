@@ -14,11 +14,13 @@ Diffops, z, Dz = DifferentialOperators(QQ, 'z')
 # ore_algebra's examples).
 fcc3 = 2*(-1+z)*z**2*(3+z)**2*Dz**3+3*z*(3+z)*(-6+5*z+5*z**2)*Dz**2+6*(-3+3*z+12*z**2+4*z**3)*Dz+6*z*(2+z)
 
-# Fuchsian operators with linear factors but without rational solution.
-# The first one is the annihilator of sqrt(1+z) and sqrt(1+2z).
-# Thanks to Emre Sertoz for the second one (arosing from actual computations).
+# Fuchsian operators with linear factors but without rational solution:
+# - the first one is the annihilator of sqrt(1+z) and sqrt(1+2z).
+# - thanks to Emre Sertoz for the second one (arosing from actual computations).
+# - the differential Galois group (= monodromy group) of the third one is composed by homotheties.
 readme_ex = (4*z**2 + 6*z + 2)*Dz**2 + (4*z + 3)*Dz - 1
 sertoz_ex = (-128*z**2 + 8)*(z*Dz)**3 + (-256*z**2-24)*(z*Dz)**2 + (32*z**2 + 10)*(z*Dz)+ 64*z**2
+exact_guessing_ex = (2*z*Dz - 1).lclm(2*z*Dz - 3)
 
 # DEtools[DFactor] (of Maple, diffop package) fails with the following operator.
 # Thanks to Bruno Salvy for reporting it. We suspect that the large exponent
@@ -42,5 +44,5 @@ QQbar_ex = z**2*Dz**2 + z*Dz + 1
 # Annihilator of the hypergeometric function 2F1(a,b;c;z).
 hypergeo = lambda a,b,c: z*(1 - z)*Dz**2 + (c - (a + b + 1)*z)*Dz - a*b
 
-# This operator admits no factorization in the first Weyl algebra.
+# This reducible operator admits no factorization in the first Weyl algebra.
 irr_weyl = Dz**2 + (-z**2 + 2*z)*Dz + z - 2

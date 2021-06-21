@@ -6,11 +6,14 @@ Distributed under the terms of the GNU General Public License
 
 ```
 sage: from ore_algebra import DifferentialOperators
-sage: from diffop_factorization import dfactor
+sage: from diffop_factorization import Dfactor
 sage: Diffops, z, Dz = DifferentialOperators(QQ, 'z')
 sage: L = (4*z^2 + 6*z + 2)*Dz^2 + (4*z + 3)*Dz - 1
-sage: dfactor(L)
+sage: Dfactor(L)
 [(4*z + 4)*Dz + 2, (z + 1/2)*Dz - 1/2]
+sage: prod(_) == L
+True
+
 ```
 
 ## Installation

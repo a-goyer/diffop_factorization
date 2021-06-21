@@ -1,1 +1,0 @@
-for((i=0; i<5; ++i)); do ~/maple2021/bin/maple < commands > tmp/o$i; done
