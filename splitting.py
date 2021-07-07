@@ -3,10 +3,12 @@ from .linear_algebra import REF, orbit, generated_algebra
 from .linear_algebra import eigenvalues, gen_eigenspaces
 from .useful_functions import customized_accuracy
 from .complex_optimistic_field import ComplexOptimisticField
+
 try:
     from sage.rings.complex_mpfr import ComplexField
-except ModuleNotFoundError: # to work with versions of sage older than 9.3
+except ModuleNotFoundError: # versions of sage older than 9.3
     from sage.rings.complex_field import ComplexField
+
 from sage.rings.real_mpfr import RealField
 from sage.modules.free_module import VectorSpace
 from sage.modules.free_module_element import vector

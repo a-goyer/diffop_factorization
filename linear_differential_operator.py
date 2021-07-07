@@ -94,20 +94,15 @@ class LinearDifferentialOperator(PlainDifferentialOperator):
                 try:
                     p = precision + loss + increment
                     if verbose: print("Try with precision = " + str(p) + ".")
-                    it = _monodromy_matrices(self, 0, eps=Radii.one()>>p,\
-                    sing=useful_singularities)
+                    it = _monodromy_matrices(self, 0, eps=Radii.one()>>p, sing=useful_singularities)
                     points, matrices = [], []
                     for pt, mat, is_scalar in it:
-                        if not is_scalar:
-                            matrices.append(mat)
-                            points.append(pt)
-                    output_precision = min(min([customized_accuracy(mat.list())\
-                    for mat in matrices], default=p), p)
+                        if not is_scalar: matrices.append(mat); points.append(pt)
+                    output_precision = min(min([customized_accuracy(mat.list()) for mat in matrices], default=p), p)
                     if output_precision<precision:
                         if verbose: print("Insufficient precision, loss = " + str(p - output_precision) + ".")
-                        if loss!=0: increment = increment<<1
-                    else:
-                        success=True
+                        increment = 50 if loss==0 else increment<<1
+                    else: success=True
                     loss = max(loss, p - output_precision)
                 except (ZeroDivisionError, accuracy.PrecisionError):
                     if verbose: print("Insufficient precision for computing monodromy.")
@@ -164,11 +159,14 @@ class LinearDifferentialOperator(PlainDifferentialOperator):
                     try:
                         exact_pols = guess_exact_numbers(pols, alg_deg)
                         coeffs = [c for pol in exact_pols for c in pol.coefficients()]
-                        self = self.extend_scalars(*coeffs)[0] # maybe not the best way?
-                        dop = self.parent()(exact_pols)
-                        if self%dop==0: return dop
+                        selftilde = self.extend_scalars(*coeffs)[0] # not recursive, need an embedding + monodromy problem
+                        dop = selftilde.parent()(exact_pols)
+                        if selftilde%dop==0:
+                            self, self.algebraicity_degree = selftilde, alg_deg
+                            self.z, self.Dz = self.base_ring().gen(), self.parent().gen()
+                            return dop
                     except PrecisionError: pass
-                    alg_deg = alg_deg + 1
+                    alg_deg = alg_deg + 1; print('alg_deg=',alg_deg)
             d0, T0 = d1, T0<<1
 
         self.order_of_truncation = self.order_of_truncation<<1
@@ -183,13 +181,13 @@ class LinearDifferentialOperator(PlainDifferentialOperator):
         'irreducible' if "self" is irreducible.
         """
 
+        if self.precision > 20000: raise NotImplementedError
+
         if self.n<2: return 'irreducible'
         if verbose: print("Try to factorize an operator of order " + str(self.n) + ".")
         if self.fuchsian_info==None:
             self.fuchsian_info = self.is_fuchsian()
             if not self.fuchsian_info: print("WARNING: The operator is not fuchsian: termination is not guaranteed.")
-
-        for (f,) in self.rational_solutions(): return f*self.Dz - f.derivative()
 
         self.monodromy(self.precision, verbose=verbose)
         self.precision = self.monodromy_data.precision
@@ -221,7 +219,8 @@ def right_Dfactor(dop, verbose=False):
     """
 
     if dop.order()==1: return 'irreducible'
-    for (f,) in dop.rational_solutions(): return f*dop.parent().gen() - f.derivative()
+    success, rfactor = try_rational(dop)
+    if success: return rfactor
 
     coeffs, z0, z = dop.monic().coefficients(), QQ.zero(), dop.base_ring().gen()
     while min(c.valuation(z - z0) for c in coeffs)<0: z0 = z0 + QQ.one()
@@ -244,6 +243,14 @@ def Dfactor(dop, verbose=False):
 
     rfactor = right_Dfactor(dop, verbose=verbose)
     if rfactor=='irreducible': return [dop]
-    lfactor = dop//rfactor
+    lfactor = rfactor.parent()(dop)//rfactor
 
     return Dfactor(lfactor, verbose=verbose) + Dfactor(rfactor, verbose=verbose)
+
+
+def try_rational(dop):
+    for (f,) in dop.rational_solutions():
+        d = f.gcd(f.derivative())
+        rfactor = (f/d)*dop.parent().gen() - f.derivative()/d
+        return True, rfactor
+    return False, None
