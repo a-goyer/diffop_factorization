@@ -92,7 +92,7 @@ class Splitting():
         prec2 = min(customized_accuracy(M) for M in self.matrices)
         prec2 = min(prec2, customized_accuracy(self.basis))
 
-        if 2*prec2 < prec1: raise PrecisionError("Losing too much precision to continue.")
+        if 2*prec2<prec1: raise PrecisionError("Losing too much precision to continue.")
 
         COF = ComplexOptimisticField(prec1, eps = RealField(30).one()>>(3*prec1//8))
 
