@@ -1,25 +1,22 @@
 import collections
 
-from .precision_error import PrecisionError
-
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RealField
 from sage.rings.qqbar import QQbar
-from .complex_optimistic_field import ComplexOptimisticField
-
 from sage.rings.power_series_ring import PowerSeriesRing
-from ore_algebra.analytic.differential_operator import PlainDifferentialOperator
-
 from sage.modules.free_module_element import vector
-
 from sage.misc.misc_c import prod
 from sage.arith.functions import lcm
 from sage.arith.misc import valuation
-from .useful_functions import customized_accuracy, power_series_coerce, derivatives
-from ore_algebra.analytic import accuracy
+
 from ore_algebra.analytic.monodromy import _monodromy_matrices
-from .splitting import invariant_subspace
-from .guessing import hp_approximants, guess_exact_numbers
+from ore_algebra.analytic.differential_operator import PlainDifferentialOperator
+from ore_algebra.analytic.accuracy import PrecisionError
+
+from .complex_optimistic_field import ComplexOptimisticField
+from .utilities import (customized_accuracy, power_series_coerce, derivatives,
+                        hp_approximants, guess_exact_numbers)
+from .linear_algebra import invariant_subspace
 
 
 Radii = RealField(30)
@@ -31,7 +28,7 @@ class LinearDifferentialOperator(PlainDifferentialOperator):
 
     r"""
     A subclass of differential operators for internal use.
-    Assumption: polynomial coefficients and 0 is an ordinary point.
+    Assumptions: polynomial coefficients and 0 is an ordinary point.
     """
 
     def __init__(self, dop):
@@ -44,7 +41,7 @@ class LinearDifferentialOperator(PlainDifferentialOperator):
 
         self.order_of_truncation = max(100, 2*self.degree() + self.n)
         self.algebraicity_degree = self.base_ring().base_ring().degree()
-        self.precision = 100*self.algebraicity_degree
+        self.precision = 100 #100*self.algebraicity_degree
 
         self.monodromy_data = MonoData(0, [], None, 0)
 
@@ -104,7 +101,7 @@ class LinearDifferentialOperator(PlainDifferentialOperator):
                         increment = 50 if loss==0 else increment<<1
                     else: success=True
                     loss = max(loss, p - output_precision)
-                except (ZeroDivisionError, accuracy.PrecisionError):
+                except (ZeroDivisionError, PrecisionError):
                     if verbose: print("Insufficient precision for computing monodromy.")
                     increment = increment<<1
             self.monodromy_data =  MonoData(output_precision, matrices, points, loss)
@@ -166,7 +163,7 @@ class LinearDifferentialOperator(PlainDifferentialOperator):
                             self.z, self.Dz = self.base_ring().gen(), self.parent().gen()
                             return dop
                     except PrecisionError: pass
-                    alg_deg = alg_deg + 1; print('alg_deg=',alg_deg)
+                    alg_deg = alg_deg + 1
             d0, T0 = d1, T0<<1
 
         self.order_of_truncation = self.order_of_truncation<<1
@@ -174,7 +171,7 @@ class LinearDifferentialOperator(PlainDifferentialOperator):
         raise PrecisionError("Insufficient precision for the guessing part.")
 
 
-    def right_Dfactor(self, verbose=False):
+    def right_factor(self, verbose=False):
 
         r"""
         Return either a non-trivial right factor of "self" or the string
@@ -206,46 +203,9 @@ class LinearDifferentialOperator(PlainDifferentialOperator):
             except PrecisionError:
                 if verbose: print("Insufficient precision.")
                 self.precision = self.precision<<1
-                return self.right_Dfactor(verbose=verbose)
+                return self.right_factor(verbose=verbose)
 
         return dop
-
-
-def right_Dfactor(dop, verbose=False):
-
-    r"""
-    Return either a non-trivial right factor of "dop" or the string
-    'irreducible' if "dop" is irreducible.
-    """
-
-    if dop.order()==1: return 'irreducible'
-    success, rfactor = try_rational(dop)
-    if success: return rfactor
-
-    coeffs, z0, z = dop.monic().coefficients(), QQ.zero(), dop.base_ring().gen()
-    while min(c.valuation(z - z0) for c in coeffs)<0: z0 = z0 + QQ.one()
-    shifted_dop = dop.annihilator_of_composition(z + z0)
-
-    LDO = LinearDifferentialOperator(shifted_dop)
-    result = LDO.right_Dfactor(verbose=verbose)
-    if result=='irreducible': return 'irreducible'
-    result = result.annihilator_of_composition(z - z0)
-
-    return result
-
-
-def Dfactor(dop, verbose=False):
-
-    r"""
-    Return a list of irreductible operators [L1, L2, ..., Lr] such that L is
-    equal to the composition L1.L2...Lr.
-    """
-
-    rfactor = right_Dfactor(dop, verbose=verbose)
-    if rfactor=='irreducible': return [dop]
-    lfactor = rfactor.parent()(dop)//rfactor
-
-    return Dfactor(lfactor, verbose=verbose) + Dfactor(rfactor, verbose=verbose)
 
 
 def try_rational(dop):
@@ -254,3 +214,39 @@ def try_rational(dop):
         rfactor = (f/d)*dop.parent().gen() - f.derivative()/d
         return True, rfactor
     return False, None
+
+
+def right_factor(dop, verbose=False):
+
+    r"""
+    Return either a non-trivial right factor of "dop" or the string
+    'irreducible' if "dop" is irreducible.
+    """
+
+    if dop.order()<2: return 'irreducible'
+    success, rfactor = try_rational(dop)
+    if success: return rfactor
+
+    coeffs, z0, z = dop.monic().coefficients(), QQ.zero(), dop.base_ring().gen()
+    while min(c.valuation(z - z0) for c in coeffs)<0: z0 = z0 + QQ.one()
+    shifted_dop = dop.annihilator_of_composition(z + z0)
+    LDO = LinearDifferentialOperator(shifted_dop)
+
+    result = LDO.right_factor(verbose=verbose)
+    if result=='irreducible': return 'irreducible'
+    result = result.annihilator_of_composition(z - z0)
+    return result
+
+
+def factor(dop, verbose=False):
+
+    r"""
+    Return a list of irreductible operators [L1, L2, ..., Lr] such that L is
+    equal to the composition L1.L2...Lr.
+    """
+
+    rfactor = right_factor(dop, verbose=verbose)
+    if rfactor=='irreducible': return [dop]
+    lfactor = rfactor.parent()(dop)//rfactor
+
+    return factor(lfactor, verbose=verbose) + factor(rfactor, verbose=verbose)

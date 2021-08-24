@@ -12,10 +12,10 @@ from sage.structure.richcmp import (op_EQ, op_NE, op_LT, op_LE, op_GT, op_GE,
         rich_to_bool)
 from sage.structure.unique_representation import UniqueRepresentation
 
-from .precision_error import PrecisionError
 from sage.categories.morphism import SetMorphism
 from sage.categories.homset import Hom
 
+from ore_algebra.analytic.accuracy import PrecisionError
 Radii = RealField(30)
 
 class OptimisticFunctor(ConstructionFunctor):
