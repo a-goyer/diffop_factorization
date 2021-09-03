@@ -1,13 +1,19 @@
 import collections
 
 from sage.rings.rational_field import QQ
+from sage.rings.integer_ring import ZZ
 from sage.rings.real_mpfr import RealField
 from sage.rings.qqbar import QQbar
 from sage.rings.power_series_ring import PowerSeriesRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+from sage.rings.laurent_series_ring import LaurentSeriesRing
 from sage.modules.free_module_element import vector
 from sage.misc.misc_c import prod
 from sage.arith.functions import lcm
-from sage.arith.misc import valuation
+from sage.functions.other import binomial
+from sage.arith.misc import valuation, gcd
+
+from sage.plot.line import line2d
 
 from ore_algebra.analytic.monodromy import _monodromy_matrices
 from ore_algebra.analytic.differential_operator import PlainDifferentialOperator
@@ -22,6 +28,7 @@ from .linear_algebra import invariant_subspace
 Radii = RealField(30)
 
 MonoData = collections.namedtuple("MonoData", ["precision", "matrices", "points", "loss"])
+NewtonEdge = collections.namedtuple("NewtonEdge", ["slope", "startpoint", "length", "polynomial"])
 
 
 class LinearDifferentialOperator(PlainDifferentialOperator):
@@ -156,7 +163,7 @@ class LinearDifferentialOperator(PlainDifferentialOperator):
                     try:
                         exact_pols = guess_exact_numbers(pols, alg_deg)
                         coeffs = [c for pol in exact_pols for c in pol.coefficients()]
-                        selftilde = self.extend_scalars(*coeffs)[0] # not recursive, need an embedding + monodromy problem
+                        selftilde = self.extend_scalars(*coeffs)[0] # not recursive, need an embedding
                         dop = selftilde.parent()(exact_pols)
                         if selftilde%dop==0:
                             self, self.algebraicity_degree = selftilde, alg_deg
@@ -208,15 +215,38 @@ class LinearDifferentialOperator(PlainDifferentialOperator):
         return dop
 
 
+    def euler_rep(self):
+
+        z, n = self.z, self.n; coeffs = self.list()
+        output = [ coeffs[0] ] + [0]*n
+        l = [0] # coefficients of T(T-1)...(T-k+1) (initial: k=0)
+
+        for k in range(1, n+1):
+
+            newl = [0]
+            for i in range(1, len(l)):
+                newl.append((-k+1)*l[i]+l[i-1])
+            l = newl + [1]
+
+            ck = coeffs[k]
+            for j in range(1, k+1):
+                output[j] += ck*z**(-k)*l[j]
+
+        return output
+
+
+
 def try_rational(dop):
+
     for (f,) in dop.rational_solutions():
         d = f.gcd(f.derivative())
         rfactor = (f/d)*dop.parent().gen() - f.derivative()/d
         return True, rfactor
+
     return False, None
 
 
-def right_factor(dop, verbose=False):
+def right_factor(dop, verbose=False, hybrid=True):
 
     r"""
     Return either a non-trivial right factor of "dop" or the string
@@ -226,6 +256,9 @@ def right_factor(dop, verbose=False):
     if dop.order()<2: return 'irreducible'
     success, rfactor = try_rational(dop)
     if success: return rfactor
+    if hybrid:
+        success, rfactor = try_series(dop)
+        if success: return rfactor
 
     coeffs, z0, z = dop.monic().coefficients(), QQ.zero(), dop.base_ring().gen()
     while min(c.valuation(z - z0) for c in coeffs)<0: z0 = z0 + QQ.one()
@@ -238,15 +271,183 @@ def right_factor(dop, verbose=False):
     return result
 
 
-def factor(dop, verbose=False):
+def factor(dop, verbose=False, hybrid=True):
 
     r"""
     Return a list of irreductible operators [L1, L2, ..., Lr] such that L is
     equal to the composition L1.L2...Lr.
     """
 
-    rfactor = right_factor(dop, verbose=verbose)
+    rfactor = right_factor(dop, verbose=verbose, hybrid=hybrid)
     if rfactor=='irreducible': return [dop]
-    lfactor = rfactor.parent()(dop)//rfactor
+    lfactor = dop//rfactor
+    return factor(lfactor, verbose=verbose, hybrid=hybrid) + factor(rfactor, verbose=verbose, hybrid=hybrid)
 
-    return factor(lfactor, verbose=verbose) + factor(rfactor, verbose=verbose)
+
+
+
+def my_newton_polygon(dop):
+
+    r"""
+    Computes the Newton polygon of ``self`` at 0.
+
+    INPUT:
+
+      - ``dop`` -- a linear differential operator which polynomial coefficients
+
+    OUTPUT:
+
+    EXAMPLES::
+
+    """
+
+    n = dop.order(); z = dop.base_ring().gen()
+    Pols, X = PolynomialRing(QQ, 'X').objgen()
+
+    points = [ ((QQ(i), QQ(c.valuation(z))), c.coefficients()[0]) \
+               for i, c in enumerate(dop.to_T('Tz').list()) if c!=0 ]
+
+    (i1, j1), c1 = points[0]
+    for (i, j), c in points:
+        if j<=j1: (i1, j1), c1 = (i, j), c
+
+    Edges = []
+    if i1>0:
+        poly = dop.indicial_polynomial(z, var = 'X')
+
+        #pol = c1*X**i1
+        #for (i, j), c in points:
+        #    if i<i1 and j==j1: pol += c*X**i
+        ## it is the same think (pol = poly)
+
+        Edges.append( NewtonEdge(QQ(0), (0, j1), i1, poly) )
+
+    while i1<n:
+        poly = c1; (i2, j2), c2 = points[-1]; s = (j2 - j1)/(i2 - i1)
+        for (i, j), c in points:
+            if i>i1:
+                t = (j - j1)/(i - i1)
+                if t<s:
+                    poly = c1; s = t
+                    if t<=s:
+                        poly += c*X**((i - i1)//s.denominator()) # REDUCED characteristic polynomial
+                        (i2, j2), c2 = (i, j), c
+        Edges.append( NewtonEdge(s, (i1, j1), i2 - i1, poly) )
+        (i1, j1), c1 = (i2, j2), c2
+
+    return Edges
+
+
+def display_newton_polygon(dop):
+
+    Edges = my_newton_polygon(dop)
+
+    (i, j) = Edges[0].startpoint
+    L1 = line2d([(i - 3, j), (i, j)], thickness=3)
+    e = Edges[-1]; s = e.slope; (i,j) = e.startpoint; l = e.length
+    L2 = line2d([(i + l, j + l*s), (i + l, j + l*s + 3)], thickness=3)
+
+    L = sum(line2d([e.startpoint, (e.startpoint[0] + e.length, e.startpoint[1] \
+            + e.length*e.slope)], marker='o', thickness=3) for e in Edges)
+
+    return L1 + L + L2
+
+
+def exponents(dop, multiplicities=False):
+
+    if dop.base_ring().base_ring()==QQ:
+        FLS = LaurentSeriesRing(QQ, dop.base_ring().variable_name())
+    else:
+        FLS = LaurentSeriesRing(QQbar, dop.base_ring().variable_name())
+    l = LinearDifferentialOperator(dop).euler_rep()
+    if FLS.base_ring()==QQ:
+        l = [FLS(c) for c in l]
+    else:
+        Pol, _ = PolynomialRing(QQbar, dop.base_ring().variable_name()).objgen()
+        l = [FLS(Pol.fraction_field()(c)) for c in l]
+    vmin = min(c.valuation() for c in l)
+    Pols, X = PolynomialRing(QQ, 'X').objgen()
+    pol = sum(FLS.base_ring()(c.coefficients()[0])*X**i for i, c in enumerate(l) if c.valuation()==vmin)
+    r = pol.roots(QQbar, multiplicities=multiplicities)
+
+    return r
+
+
+def S(dop, e):
+    """ map: Tz --> Tz + e """
+
+    l = LinearDifferentialOperator(dop).euler_rep()
+    for i, c in enumerate(l):
+        for k in range(i):
+            l[k] += binomial(i, k)*e**(i - k)*c
+    T = dop.base_ring().gen()*dop.parent().gen()
+    output = sum(c*T**i for i, c in enumerate(l))
+
+    return output
+
+
+
+def search_exp_part_with_mult1(dop):
+
+    dop = LinearDifferentialOperator(dop)
+    lc = dop.leading_coefficient()//gcd(dop.list())
+    for f, _ in list(lc.factor()) + [ (1/dop.base_ring().gen(), None) ]:
+        pol = dop.indicial_polynomial(f)
+        roots = pol.roots(QQbar)
+        for r, m in roots:
+            if m==1:
+                success = True
+                for s, l in roots:
+                    if s!=r and r-s in ZZ: success = False
+                if success: return (f, r)
+
+    return (None, None)
+
+
+
+def right_factor_via_exp_part(Le):
+
+    success, rfactor = try_rational(Le)
+    if success: return True, rfactor
+
+    f = Le.power_series_solutions(100)[0]
+    der = [f]; r = Le.order() - 1
+    der.append(der[-1].derivative())
+    app = hp_approximants(der, 100 - r)
+    if max(c.degree() for c in app)<100-r-10:
+        if all(c2.numerator().abs()>>300==0 for c1 in app for c2 in c1):
+            Re = Le.gcrd(Le.parent()(app))
+            if Re.order()>0: return True, Re
+
+    return False, None
+
+
+
+def try_series(dop):
+
+    """
+    INPUT:
+     - ``dop`` - a linear differential operator
+
+    OUTPUT:
+     - ``b`` - a boolean
+     - ``L`` - None if b=False, a linear differential operator otherwise
+    """
+
+    z = dop.base_ring().gen()
+    f, e = search_exp_part_with_mult1(dop)
+    if e in QQ: e = QQ(e)
+    if not f is None:
+        if z*f.is_one():
+            Le = S(dop.annihilator_of_composition(f), e)
+            b, Re = right_factor_via_exp_part(Le)
+            if b: return True, S(Re, -e).annihilator_of_composition(f)
+        elif f.degree()==1:
+            s = f.roots(QQ, multiplicities=False)[0]
+            Le = S(dop.annihilator_of_composition(z + s), e)
+            b, Re = right_factor_via_exp_part(Le)
+            if b: return True, S(Re, -e).annihilator_of_composition(z - s)
+        else:
+            raise NotImplementedError
+
+    return False, None

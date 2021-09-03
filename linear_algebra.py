@@ -16,19 +16,19 @@ from .utilities import roots, XGCD, customized_accuracy
 from .complex_optimistic_field import ComplexOptimisticField
 
 
-def REF(mat, *, transformation=False, pivots=False, prec_pivots={}):
+def row_echelon_form(mat, *, transformation=False, pivots=False, prec_pivots={}):
 
     r"""
     Return a row echelon form of "mat".
 
     Note: this function is designed for BallField as base ring.
 
-    The computed row echelon form is 'almost reduced': the pivots are set to 1
-    and the coefficients below the pivots are set to 0 but the coefficients
-    above the pivots may be nonzero.
+    The computed row echelon form is semi-reduced: the pivots are set to 1 and
+    the coefficients below the pivots are set to 0 but the coefficients above
+    the pivots may be nonzero.
 
     Some words about the correction of this function:
-    Let (R, T, p) be the output for REF(mat, transformation=True, pivots=True).
+    Let (R, T, p) be the output for row_echelon_form(mat, transformation=True, pivots=True).
     For any mat· in mat, there are R· in R and T· in T such that:
     i) for each j of p, R[p[j],j] = 1 and R[i,j] = 0 for i > p[j] (exactly),
     ii) R· = T· * mat· and T· is invertible,
@@ -62,13 +62,13 @@ def REF(mat, *, transformation=False, pivots=False, prec_pivots={}):
 
     An example with a generic 3×3 matrix. ::
 
-        sage: from diffop_factorization.reduction import REF
+        sage: from diffop_factorization.reduction import row_echelon_form
         sage: K = RealBallField(20)
         sage: mat = matrix(K, 3, [RR.random_element() for cpt in range(9)]); mat
         [ [-0.655408 +/- 6.67e-8]  [-0.134570 +/- 4.86e-7]   [0.150069 +/- 2.40e-7]]
         [ [-0.222183 +/- 3.23e-7]  [-0.833284 +/- 2.13e-7]   [0.885925 +/- 5.44e-8]]
         [ [-0.790008 +/- 1.47e-7] [-0.0786588 +/- 3.42e-8]   [0.146726 +/- 9.49e-8]]
-        sage: R, T, p = REF(mat, transformation=True, pivots=True); R
+        sage: R, T, p = row_echelon_form(mat, transformation=True, pivots=True); R
         [                1.00000  [0.099567 +/- 4.54e-7] [-0.185727 +/- 8.63e-7]]
         [                      0                 1.00000   [-1.0413 +/- 1.48e-5]]
         [                      0                       0                 1.00000]
@@ -81,7 +81,7 @@ def REF(mat, *, transformation=False, pivots=False, prec_pivots={}):
 
     An example with a singular 3×3 matrix. ::
 
-        sage: from diffop_factorization.reduction import REF
+        sage: from diffop_factorization.reduction import row_echelon_form
         sage: K = RealBallField(20)
         sage: mat = random_matrix(QQ, 3, 3, algorithm='echelonizable', rank=2)
         sage: ran = matrix(K, 3, [RR.random_element() for i in range(9)])
@@ -89,34 +89,34 @@ def REF(mat, *, transformation=False, pivots=False, prec_pivots={}):
         [ [3.089 +/- 8.73e-4]  [-2.05 +/- 2.67e-3] [-1.466 +/- 7.17e-4]]
         [ [1.024 +/- 7.86e-4] [-10.81 +/- 3.26e-3] [-5.653 +/- 4.33e-4]]
         [[-1.204 +/- 1.78e-4]  [8.927 +/- 4.31e-4]  [4.718 +/- 3.11e-4]]
-        sage: REF(mat)
+        sage: row_echelon_form(mat)
         [             1.00000 [-0.664 +/- 5.83e-4] [-0.475 +/- 6.38e-4]]
         [                   0              1.00000  [0.510 +/- 3.73e-4]]
         [                   0                    0        [+/- 2.18e-3]]
 
     An example with a generic 3×4 matrix. ::
 
-        sage: from diffop_factorization.reduction import REF
+        sage: from diffop_factorization.reduction import row_echelon_form
         sage: K = RealBallField(10)
         sage: mat =  matrix(K, 3, 4, [RR.random_element() for i in range(12)]); mat
         [[-0.794 +/- 2.56e-4]  [0.649 +/- 4.95e-4] [-0.109 +/- 1.70e-4]  [0.798 +/- 8.63e-5]]
         [[-0.645 +/- 3.14e-4] [-0.882 +/- 3.60e-4] [-0.555 +/- 4.51e-4] [-0.986 +/- 4.24e-4]]
         [ [0.298 +/- 5.29e-5]  [0.217 +/- 4.81e-4] [-0.521 +/- 1.37e-4]  [0.626 +/- 3.28e-4]]
-        sage: REF(mat)
+        sage: row_echelon_form(mat)
         [               1.00 [-0.82 +/- 6.85e-3] [0.137 +/- 8.34e-4] [-1.00 +/- 6.71e-3]]
         [                  0                1.00  [0.33 +/- 4.73e-3]    [1.2 +/- 0.0535]]
         [                  0                   0                1.00   [-0.5 +/- 0.0772]]
 
     An example with a generic 4×3 matrix. ::
 
-        sage: from diffop_factorization.reduction import REF
+        sage: from diffop_factorization.reduction import row_echelon_form
         sage: K = RealBallField(20)
         sage: mat =  matrix(K, 4, 3, [RR.random_element() for i in range(12)]); mat
         [  [0.314239 +/- 3.15e-7]   [0.572433 +/- 2.10e-7]   [0.794824 +/- 9.85e-8]]
         [  [0.237214 +/- 1.11e-7]  [-0.579073 +/- 4.26e-7]   [0.444660 +/- 1.36e-7]]
         [  [0.565036 +/- 3.48e-7]   [0.938426 +/- 3.17e-7]  [-0.674036 +/- 1.86e-7]]
         [[-0.0756391 +/- 2.13e-8]  [-0.868542 +/- 2.49e-8]  [-0.827502 +/- 2.90e-7]]
-        sage: R, T = REF(mat, transformation=True); R
+        sage: R, T = row_echelon_form(mat, transformation=True); R
         [               1.00000   [1.6608 +/- 3.04e-5] [-1.19291 +/- 7.88e-6]]
         [                     0                1.00000 [-0.74779 +/- 7.43e-6]]
         [                     0                      0                1.00000]
@@ -243,7 +243,7 @@ def orbit(Mats, vec, *, transition=False, pivots=False):
 
     n, C = len(vec), vec.base_ring()
 
-    b, S, p = REF(matrix(vec), transformation=True, pivots=True)
+    b, S, p = row_echelon_form(matrix(vec), transformation=True, pivots=True)
     if transition: T = [S[0,0]*identity_matrix(C, n)]
 
     if len(p)==0: # case where vec contains the null vector
@@ -258,9 +258,9 @@ def orbit(Mats, vec, *, transition=False, pivots=False):
             T.extend([mat*T[i] for mat in Mats for i in new])
 
         if transition:
-            b, S, p = REF(b, transformation=True, pivots=True, prec_pivots = p)
+            b, S, p = row_echelon_form(b, transformation=True, pivots=True, prec_pivots = p)
         else:
-            b, p = REF(b, pivots=True, prec_pivots = p)
+            b, p = row_echelon_form(b, pivots=True, prec_pivots = p)
 
         new = range(r, len(p))
         if transition:
@@ -325,9 +325,9 @@ def generated_algebra(Mats, _check=False):
     n, C = mat.nrows(), mat.base_ring()
 
     if _check:
-        b, T, p = REF(matrix([mat.list() for mat in Mats]), transformation=True, pivots=True)
+        b, T, p = row_echelon_form(matrix([mat.list() for mat in Mats]), transformation=True, pivots=True)
         l = [sum(T[i,j]*Mats[j] for j in range(len(Mats))) for i in range(len(p))]
-    else: b, p = REF(matrix([mat.list() for mat in Mats]), pivots=True)
+    else: b, p = row_echelon_form(matrix([mat.list() for mat in Mats]), pivots=True)
 
     r, b, new = len(p), b[:len(p)], range(0, len(p))
 
@@ -336,9 +336,9 @@ def generated_algebra(Mats, _check=False):
         b = b.stack(matrix([(matrix(n,b[i])*matrix(n,b[j])).list() for i in range(r) for j in new]))
         if _check:
             l.extend(l[i]*l[j] for i in range(r) for j in new)
-            b, T, p = REF(b, transformation=True, pivots=True, prec_pivots = p)
+            b, T, p = row_echelon_form(b, transformation=True, pivots=True, prec_pivots = p)
             l = [sum(T[i,j]*l[j] for j in range(len(l))) for i in range(len(p))]
-        else: b, p = REF(b, pivots=True, prec_pivots = p)
+        else: b, p = row_echelon_form(b, pivots=True, prec_pivots = p)
 
         r, b, new = len(p), b[:len(p)], range(r, len(p))
 
@@ -394,7 +394,7 @@ def ker(mat):
 
     """
 
-    R, T, p = REF(mat.transpose(), transformation=True, pivots=True)
+    R, T, p = row_echelon_form(mat.transpose(), transformation=True, pivots=True)
     b = list(T[len(p):])
 
     return b
@@ -631,7 +631,7 @@ class Splitting():
                         V = [(b*v).change_ring(self.C) for v in V]
                         return (True, V)
                     vec1 = basis[0]
-                    if len(REF(matrix([vec0, vec1]), pivots=True)[1])==1: vec1 = basis[1]
+                    if len(row_echelon_form(matrix([vec0, vec1]), pivots=True)[1])==1: vec1 = basis[1]
                     lc = linear_combination(vec1, V, p)
                     M = sum(cj*T[j] for j, cj in enumerate(lc))
                     mat = M.matrix_from_rows_and_columns(ind, ind)
