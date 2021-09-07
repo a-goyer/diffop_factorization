@@ -1,4 +1,15 @@
-# coding: utf-8
+"""
+A version of ComplexBallField with an optimistic zero test (b==0 as soon as b
+contains 0)
+"""
+
+# Copyright 2021 Marc Mezzarobba, ?
+# Copyright 2021 Alexandre Goyer, Inria Saclay Ile-de-France
+#
+# Distributed under the terms of the GNU General Public License (GPL) either
+# version 2, or (at your option) any later version
+#
+# http://www.gnu.org/licenses/
 
 import sage.categories.fields
 

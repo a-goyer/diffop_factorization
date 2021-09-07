@@ -11,7 +11,6 @@ from sage.matrix.special import identity_matrix
 from sage.misc.misc_c import prod
 
 from ore_algebra.analytic.accuracy import PrecisionError
-
 from .utilities import roots, XGCD, customized_accuracy
 from .complex_optimistic_field import ComplexOptimisticField
 

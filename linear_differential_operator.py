@@ -13,6 +13,8 @@ from sage.arith.functions import lcm
 from sage.functions.other import binomial
 from sage.arith.misc import valuation, gcd
 
+from sage.misc.misc import cputime
+
 from sage.plot.line import line2d
 
 from ore_algebra.analytic.monodromy import _monodromy_matrices
@@ -30,16 +32,22 @@ Radii = RealField(30)
 MonoData = collections.namedtuple("MonoData", ["precision", "matrices", "points", "loss"])
 NewtonEdge = collections.namedtuple("NewtonEdge", ["slope", "startpoint", "length", "polynomial"])
 
-
 class LinearDifferentialOperator(PlainDifferentialOperator):
 
     r"""
-    A subclass of differential operators for internal use.
+    A subclass of linear differential operators for internal use.
     Assumptions: polynomial coefficients and 0 is an ordinary point.
     """
 
     def __init__(self, dop):
 
+        if not dop:
+            raise ValueError("operator must be nonzero")
+        if not dop.parent().is_D():
+            raise ValueError("expected an operator in K(x)[D]")
+        _, _, _, dop = dop.numerator()._normalize_base_ring()
+        den = lcm(c.denominator() for c in dop)
+        dop *= den
         super(LinearDifferentialOperator, self).__init__(dop)
 
         self.z = self.base_ring().gen()
@@ -262,13 +270,12 @@ def right_factor(dop, verbose=False, hybrid=True):
 
     coeffs, z0, z = dop.monic().coefficients(), QQ.zero(), dop.base_ring().gen()
     while min(c.valuation(z - z0) for c in coeffs)<0: z0 = z0 + QQ.one()
-    shifted_dop = dop.annihilator_of_composition(z + z0)
-    LDO = LinearDifferentialOperator(shifted_dop)
+    shifted_dop = LinearDifferentialOperator(dop.annihilator_of_composition(z + z0))
 
-    result = LDO.right_factor(verbose=verbose)
-    if result=='irreducible': return 'irreducible'
-    result = result.annihilator_of_composition(z - z0)
-    return result
+    output = shifted_dop.right_factor(verbose=verbose)
+    if output=='irreducible': return 'irreducible'
+    output = output.annihilator_of_composition(z - z0)
+    return output
 
 
 def factor(dop, verbose=False, hybrid=True):
@@ -405,19 +412,39 @@ def search_exp_part_with_mult1(dop):
 
 
 
-def right_factor_via_exp_part(Le):
+def right_factor_via_exp_part(Le, adj=None):
 
     success, rfactor = try_rational(Le)
     if success: return True, rfactor
 
     f = Le.power_series_solutions(100)[0]
+    if adj==None:
+        fa = Le.adjoint().power_series_solutions(100)[0]
+        m = max(c.numerator().abs() for c in f)
+        ma = max(c.numerator().abs() for c in fa)
+        if ma<m:
+            Leadj = Le.adjoint()
+            b, Readj = right_factor_via_exp_part(Leadj, adj=False)
+            if b:
+                Qeadj = Leadj // Readj
+                return True, Qeadj.adjoint()
+        adj = False
+
     der = [f]; r = Le.order() - 1
-    der.append(der[-1].derivative())
+    for i in range(r):
+        der.append(der[-1].derivative())
     app = hp_approximants(der, 100 - r)
-    if max(c.degree() for c in app)<100-r-10:
+    if max(c.degree() for c in app) < 100 - r - 10:
         if all(c2.numerator().abs()>>300==0 for c1 in app for c2 in c1):
             Re = Le.gcrd(Le.parent()(app))
             if Re.order()>0: return True, Re
+
+    if not adj:
+        Leadj = Le.adjoint()
+        b, Readj = right_factor_via_exp_part(Leadj, adj=True)
+        if b:
+            Qeadj = Leadj // Readj
+            return True, Qeadj.adjoint()
 
     return False, None
 
@@ -448,6 +475,6 @@ def try_series(dop):
             b, Re = right_factor_via_exp_part(Le)
             if b: return True, S(Re, -e).annihilator_of_composition(z - s)
         else:
-            raise NotImplementedError
+            return False, None # to be implemented
 
     return False, None

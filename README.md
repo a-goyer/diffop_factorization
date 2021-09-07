@@ -1,3 +1,7 @@
+:warning: :warning: :warning: This repository is obsolete. I continue to develop symbolic-numeric tools for factoring differential operators directly in ore_algebra package (available at [https://github.com/a-goyer/ore_algebra/tree/facto](https://github.com/a-goyer/ore_algebra/tree/facto)).
+
+
+
 # Package for the factorization of linear differential operators whose coefficients are rational functions.
 
 Distributed under the terms of the GNU General Public License
